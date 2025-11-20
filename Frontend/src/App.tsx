@@ -3,7 +3,6 @@ import HomePage from './Components/HomePage/HomePage'
 import AboutPage from './Components/AboutPage/AboutPage'
 import ProductsPage from './Components/ProductsPage/ProductsPage'
 import ContactPage from './Components/ContactPage/ContactPage'
-import SingleProductPage from './Components/SingleProductPage/SingleProductPage'
 import CartPage from './Components/Cart Page/CartPage'
 import Navbar from './Components/Navbar/Navbar'
 import Footer from './Components/Footer/Footer'
@@ -19,7 +18,6 @@ const App = () => {
         <Route path="/about" element={<AboutPage/>} />
         <Route path="/products" element={<ProductsPage/>} />
         <Route path="/contact" element={<ContactPage/>} />
-        <Route path="/singleproduct/:id" element={<SingleProductPage/>} />
         <Route path="/cart" element={<CartPage/>} />
         {/* <Route path="*" element={<ErrorPage/>} /> */}
 
