@@ -6,6 +6,14 @@
 @import 'swiper/css/navigation';
 @import 'swiper/css/pagination';
 
+:root {
+  --swiper-theme-color: #007aff;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+}
 
 .delius{
   font-family: "Delius Swash Caps", cursive;

@@ -27,7 +27,7 @@ const HomePage = () => {
               sm:w-[260px] sm:h-[260px]
               md:w-[330px] md:h-[330px]
               lg:w-[500px] lg:h-[500px]
-              xl:w-[600px] xl:h-[600px]
+              xl:w-[560px] xl:h-[460px]
               -top-6 md:-top-10 right-6 md:right-20
             "
             ></div>
@@ -42,7 +42,7 @@ const HomePage = () => {
                   sm:w-[290px]
                   md:w-[390px]
                   lg:w-[590px]
-                  xl:w-[690px]
+                  xl:w-[610px]
                 "
               />
             </figure>

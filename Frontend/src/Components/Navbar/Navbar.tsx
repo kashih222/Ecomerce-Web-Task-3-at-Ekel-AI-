@@ -4,6 +4,10 @@ import { Menu, X } from "lucide-react";
 import logo from "../../assets/Logo.png";
 import { useForm } from "react-hook-form";
 import type { SubmitHandler } from "react-hook-form";
+import axios from "axios";
+
+const API_REGISTER = "http://localhost:5000/api/auth/registeruser";
+const API_LOGIN = "http://localhost:5000/api/auth/login";
 
 type InputsLogin = {
   email: string;
@@ -20,6 +24,11 @@ const Navbar = () => {
   const [open, setOpen] = useState(false);
   const [OpenLogin, setOpenLogin] = useState(false);
   const [openSignup, setOpenSignup] = useState(false);
+
+  const [user, setUser] = useState<{ fullname: string; email: string } | null>(
+    JSON.parse(localStorage.getItem("user") || "null")
+  );
+  const [openProfile, setOpenProfile] = useState(false);
 
   const delay = (ms: number) =>
     new Promise((resolve) => setTimeout(resolve, ms));
@@ -42,17 +51,54 @@ const Navbar = () => {
 
   // LOGIN SUBMIT
   const onLoginSubmit: SubmitHandler<InputsLogin> = async (data) => {
-    await delay(2000);
-    console.log("Login:", data);
-    resetLogin();
+    try {
+      const response = await axios.post(API_LOGIN, data);
+      console.log("Login success:", response.data);
+      setUser(response.data.user);
+      localStorage.setItem("user", JSON.stringify(response.data.user));
+
+      alert(`Welcome, ${response.data.user.fullname}`);
+      resetLogin();
+      setOpenLogin(false);
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        alert(
+          error.response?.data?.message ||
+            "Something went wrong. Please try again."
+        );
+      } else {
+        alert("Something went wrong. Please try again.");
+      }
+    }
   };
 
   // SIGNUP SUBMIT
-  const onSignupSubmit: SubmitHandler<InputsSignup> = async (data) => {
-    await delay(2000);
-    console.log("Signup:", data);
-    resetSignup();
-  };
+ const onSignupSubmit: SubmitHandler<InputsSignup> = async (data) => {
+  try {
+    await delay(2000); 
+
+    const response = await axios.post(API_REGISTER, {
+      fullname: data.fullname,
+      email: data.email,
+      password: data.password,
+    });
+
+    console.log("User Registered:", response.data);
+
+    resetSignup(); 
+    setOpenSignup(false); 
+    alert("User Registered Successfully!");
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      console.log(error.response?.data || error.message);
+      alert(error.response?.data?.message || "Something went wrong!");
+    } else {
+      console.log(error);
+      const message = error instanceof Error ? error.message : String(error);
+      alert(message || "Something went wrong!");
+    }
+  }
+};
 
   return (
     <nav className="w-full bg-white shadow-md fixed top-0 left-0 z-50">
@@ -68,7 +114,7 @@ const Navbar = () => {
         {/* Desktop Menu */}
         <ul className="hidden md:flex items-center gap-8 text-gray-700 text-lg font-medium">
           <li>
-            <NavLink to="/" className="hover:text-black  duration-200">
+            <NavLink to="/" className="hover:text-black duration-200">
               Home
             </NavLink>
           </li>
@@ -91,18 +137,46 @@ const Navbar = () => {
 
         {/* Desktop Buttons */}
         <div className="hidden md:flex gap-4">
-          <button
-            className="px-5 py-2 border border-black text-black rounded-full hover:bg-black hover:scale-95 hover:text-white duration-300"
-            onClick={() => setOpenLogin(true)}
-          >
-            Login
-          </button>
-          <button
-            className="px-5 py-2 bg-black text-white rounded-full hover:scale-95 duration-300"
-            onClick={() => setOpenSignup(true)}
-          >
-            Sign Up
-          </button>
+          {user ? (
+            <div className="relative">
+              <div
+                className="rounded-full w-14 h-14 border border-gray-300 cursor-pointer flex items-center justify-center bg-gray-900 text-white font-bold"
+                onClick={() => setOpenProfile(!openProfile)}
+              >
+                {user?.fullname.charAt(0).toUpperCase()}
+              </div>
+              {openProfile && (
+                <div className="absolute right-0 mt-2 bg-white shadow-lg rounded-lg p-2 w-36 text-sm">
+                  <button
+                    onClick={() => {
+                      setUser(null);
+                      setOpenProfile(false);
+                      console.log(localStorage.clear())
+                    }}
+                    className="w-full text-left px-2 py-1 hover:bg-gray-100 rounded"
+                  >
+                    Logout
+
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <>
+              <button
+                className="px-5 py-2 border border-black text-black rounded-full hover:bg-black hover:scale-95 hover:text-white duration-300"
+                onClick={() => setOpenLogin(true)}
+              >
+                Login
+              </button>
+              <button
+                className="px-5 py-2 bg-black text-white rounded-full hover:scale-95 duration-300"
+                onClick={() => setOpenSignup(true)}
+              >
+                Sign Up
+              </button>
+            </>
+          )}
         </div>
 
         {/* Hamburger Menu */}
@@ -138,123 +212,146 @@ const Navbar = () => {
           </ul>
 
           {/* Mobile Buttons */}
-          <div className="flex flex-col gap-3 pt-4">
+          {user ? (
+            <div className="flex items-center gap-2 relative">
+              <div
+                className="rounded-full w-12 h-12 border border-gray-300 cursor-pointer flex items-center justify-center bg-gray-900 text-white font-bold"
+                onClick={() => setOpenProfile(!openProfile)}
+              >
+                {user?.fullname.charAt(0).toUpperCase()}
+              </div>
+
+              {openProfile && (
+                <div className="absolute top-12 right-6 bg-white shadow-lg rounded-lg p-2 w-36 text-sm">
+                  <button
+                    onClick={() => {
+                      setUser(null);
+                      localStorage.removeItem("user");
+                      setOpenProfile(false);
+                      setOpen(false);
+                      console.log(localStorage.clear())
+                    }}
+                    className="w-full text-left px-2 py-1 hover:bg-gray-100 rounded"
+                  >
+                    Logout
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <>
+              <button
+                className="px-5 py-2 border border-black text-black rounded-full hover:scale-90 hover:text-white duration-300"
+                onClick={() => setOpenLogin(true)}
+              >
+                Login
+              </button>
+              <button
+                className="px-5 py-2 bg-black text-white rounded-full hover:scale-90 duration-300"
+                onClick={() => setOpenSignup(true)}
+              >
+                Sign Up
+              </button>
+            </>
+          )}
+        </div>
+      )}
+
+      {/* LOGIN MODAL */}
+      {OpenLogin && (
+        <div className="fixed inset-0 backdrop-blur-sm bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg w-11/12 sm:w-96 p-6 relative shadow-lg">
             <button
-              className="px-5 py-2 border border-black text-black rounded-full hover:scale-90 hover:text-white duration-300"
-              onClick={() => setOpenLogin(true)}
+              onClick={() => setOpenLogin(false)}
+              className="absolute top-3 right-3 text-gray-500 hover:text-gray-900"
             >
-              Login
+              ✕
             </button>
-            <button
-              className="px-5 py-2 bg-black text-white rounded-full hover:scale-90 duration-300"
-              onClick={() => setOpenSignup(true)}
+
+            <h2 className="text-2xl font-bold mb-4 text-center">Login</h2>
+            <form
+              onSubmit={handleSubmitLogin(onLoginSubmit)}
+              className="flex flex-col gap-4"
             >
-              Sign Up
-            </button>
+              <input
+                type="email"
+                placeholder="Email"
+                className="border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-gray-900"
+                {...registerLogin("email", {
+                  required: true,
+                  pattern:
+                    /^[a-zA-Z0-9._%+-]{4,}@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+                })}
+              />
+              <input
+                type="password"
+                placeholder="Password"
+                className="border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-gray-900"
+                {...registerLogin("password", {
+                  required: true,
+                  minLength: 6,
+                  maxLength: 20,
+                  pattern:
+                    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/,
+                })}
+              />
+              {(loginErrors.email || loginErrors.password) && (
+                <div className="text-sm text-red-600 space-y-1 mt-1">
+                  {loginErrors.email?.type === "required" && (
+                    <div>Email is required.</div>
+                  )}
+                  {loginErrors.email?.type === "pattern" && (
+                    <div>Enter a valid email.</div>
+                  )}
+                  {loginErrors.password?.type === "required" && (
+                    <div>Password is required.</div>
+                  )}
+                  {loginErrors.password?.type === "minLength" && (
+                    <div>Password must be at least 6 characters.</div>
+                  )}
+                  {loginErrors.password?.type === "maxLength" && (
+                    <div>Password must be at most 20 characters.</div>
+                  )}
+                  {loginErrors.password?.type === "pattern" && (
+                    <div>
+                      Password must contain:
+                      <br />– 1 uppercase letter
+                      <br />– 1 lowercase letter
+                      <br />– 1 number
+                      <br />– 1 special character
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <input
+                type="submit"
+                value="Login"
+                className="bg-gray-900 text-white py-2 rounded-lg hover:bg-gray-700 transition"
+                disabled={loginSubmitting}
+              />
+            </form>
+
+            <p className="text-sm text-gray-500 mt-4 text-center">
+              Don't have an account?{" "}
+              <span
+                className="text-blue-600 cursor-pointer hover:underline"
+                onClick={() => {
+                  setOpenLogin(false);
+                  setOpenSignup(true);
+                }}
+              >
+                Sign Up
+              </span>
+            </p>
           </div>
         </div>
       )}
 
-      {OpenLogin && (
-        <>
-          <div className="fixed inset-0 backdrop-blur-sm bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg w-11/12 sm:w-96 p-6 relative shadow-lg">
-              <button
-                onClick={() => setOpenLogin(false)}
-                className="absolute top-3 right-3 text-gray-500 hover:text-gray-900"
-              >
-                ✕
-              </button>
-
-              <h2 className="text-2xl font-bold mb-4 text-center">Login</h2>
-              <form
-                onSubmit={handleSubmitLogin(onLoginSubmit)}
-                className="flex flex-col gap-4"
-              >
-                <input
-                  type="email"
-                  placeholder="Email"
-                  className="border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-gray-900"
-                  {...registerLogin("email", {
-                    required: true,
-
-                    pattern:
-                      /^[a-zA-Z0-9._%+-]{4,}@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
-                  })}
-                />
-                <input
-                  type="password"
-                  placeholder="Password"
-                  className="border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-gray-900"
-                  {...registerLogin("password", {
-                    required: true,
-                    minLength: 6,
-                    maxLength: 20,
-                    pattern:
-                      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/,
-                  })}
-                />
-                {(loginErrors.email || loginErrors.password) && (
-                  <div className="text-sm text-red-600 space-y-1 mt-1">
-                    {/* Email Errors */}
-                    {loginErrors.email?.type === "required" && (
-                      <div>Email is required.</div>
-                    )}
-                    {loginErrors.email?.type === "pattern" && (
-                      <div>Enter a valid email address.</div>
-                    )}
-
-                    {/* Password Errors */}
-                    {loginErrors.password?.type === "required" && (
-                      <div>Password is required.</div>
-                    )}
-                    {loginErrors.password?.type === "minLength" && (
-                      <div>Password must be at least 6 characters.</div>
-                    )}
-                    {loginErrors.password?.type === "maxLength" && (
-                      <div>Password must be at most 20 characters.</div>
-                    )}
-                    {loginErrors.password?.type === "pattern" && (
-                      <div>
-                        Password must contain:
-                        <br />– 1 uppercase letter
-                        <br />– 1 lowercase letter
-                        <br />– 1 number
-                        <br />– 1 special character
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                <input
-                  type="submit"
-                  value="Login"
-                  className="bg-gray-900 text-white py-2 rounded-lg hover:bg-gray-700 transition"
-                  disabled={loginSubmitting}
-                />
-              </form>
-
-              <p className="text-sm text-gray-500 mt-4 text-center">
-                Don't have an account?{" "}
-                <span
-                  className="text-blue-600 cursor-pointer hover:underline"
-                  onClick={() => {
-                    setOpenLogin(false);
-                    setOpenSignup(true);
-                  }}
-                >
-                  Sign Up
-                </span>
-              </p>
-            </div>
-          </div>
-        </>
-      )}
-
+      {/* SIGNUP MODAL */}
       {openSignup && (
         <div className="fixed inset-0 backdrop-blur-sm bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg w-11/12 sm:w-96 p-6 relative shadow-lg">
-            {/* Close Button */}
             <button
               onClick={() => setOpenSignup(false)}
               className="absolute top-3 right-3 text-gray-500 hover:text-gray-900"
@@ -262,10 +359,7 @@ const Navbar = () => {
               ✕
             </button>
 
-            {/* Heading */}
             <h2 className="text-2xl font-bold mb-4 text-center">Sign Up</h2>
-
-            {/* SignUp Form */}
             <form
               className="flex flex-col gap-4"
               onSubmit={handleSubmitSignup(onSignupSubmit)}
@@ -285,7 +379,7 @@ const Navbar = () => {
                     message: "Full Name must be at most 30 characters",
                   },
                   pattern: {
-                    value: /^[a-zA-Z0-9]+$/,
+                    value: /^[a-zA-Z ]+$/,
                     message: "Full Name can only contain letters and spaces",
                   },
                 })}
@@ -327,7 +421,6 @@ const Navbar = () => {
                 })}
               />
 
-              {/* Error Messages */}
               {(signupErrors.fullname ||
                 signupErrors.email ||
                 signupErrors.password) && (
@@ -344,7 +437,6 @@ const Navbar = () => {
                 </div>
               )}
 
-              {/* Submit Button */}
               <button
                 type="submit"
                 disabled={signupSubmitting}
@@ -356,7 +448,6 @@ const Navbar = () => {
               </button>
             </form>
 
-            {/* Extra Links */}
             <p className="text-sm text-gray-500 mt-4 text-center">
               Already have an account?{" "}
               <span
