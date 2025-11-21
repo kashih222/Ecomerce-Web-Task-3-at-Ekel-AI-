@@ -54,7 +54,7 @@ router.post("/registeruser", async (req, res) => {
 });
 
 // Login route
-router.post("/login-me", async (req, res) => {
+router.post("/loginuser", async (req, res) => {
   const { email, password } = req.body;
 
   try {
@@ -79,7 +79,7 @@ router.post("/login-me", async (req, res) => {
 // Get logged-in user info
 router.get("/me", async (req, res) => {
   try {
-    const token = req.cookies?.token; // JWT stored in httpOnly cookie
+    const token = req.cookies?.token; 
     if (!token) {
       return res.status(401).json({ message: "Not authenticated" });
     }
@@ -88,7 +88,7 @@ router.get("/me", async (req, res) => {
     const decoded = jwt.verify(token, JWT_SECRET);
 
     // Find user by ID
-    const user = await User.findById(decoded.id).select("-password"); // exclude password
+    const user = await User.findById(decoded.id).select("-password"); 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }

@@ -6,9 +6,10 @@ import { useForm } from "react-hook-form";
 import type { SubmitHandler } from "react-hook-form";
 import axios from "axios";
 import { toast } from "react-toastify";
+import cartpng from "../../assets/shopping-cart.gif";
 
 const API_REGISTER = "http://localhost:5000/api/auth/user/registeruser";
-const API_LOGIN = "http://localhost:5000/api/login/login-me";
+const API_LOGIN = "http://localhost:5000/api/login/loginuser";
 const API_LOGOUT = "http://localhost:5000/api/auth/loging/logout";
 const API_USER = "http://localhost:5000/api/loged-me/me";
 
@@ -166,25 +167,30 @@ const Navbar = () => {
         <div className="hidden md:flex gap-4">
           {user ? (
             <div className="relative">
-              <div className="">
+              <div className="flex items-center justify-center gap-2">
+                <div className=" w-14 h-14 cursor-pointer hover:scale-95">
+                  <img src={cartpng} alt="Cart_png" />
+                </div>
                 <div
-                  className="rounded-full w-14 h-14 border border-gray-300 cursor-pointer flex items-center justify-center bg-gray-900 text-white font-bold"
+                  className="rounded-full w-12 h-12 border border-gray-300 cursor-pointer flex items-center justify-center bg-black text-white font-bold hover:scale-95"
                   onClick={() => setOpenProfile(!openProfile)}
                 >
                   {user?.fullname.charAt(0).toUpperCase()}
                 </div>
               </div>
               {openProfile && (
-                <div className="absolute right-0 mt-2  shadow-lg rounded-lg p-2  text-sm ">
-                  <div >
-                    <p className="text-black font-bold px-2 py-1">{user.fullname}</p>
-                    <p className="px-2 py-1">{user.email}</p>
+                <div className="absolute right-0 mt-2 bg-black text-white shadow-lg rounded-lg p-2  text-sm ">
+                  <div className="">
+                    <p className=" font-bold px-2 py-1 whitespace-nowrap">
+                      {user.fullname}
+                    </p>
+                    <p className="px-2 py-1 whitespace-nowrap">{user.email}</p>
                   </div>
                   <button
                     onClick={handleLogout}
                     className="w-full text-left px-2 py-1 hover:bg-red-600 rounded hover:text-white font-medium"
                   >
-                  Logout
+                    Logout
                   </button>
                 </div>
               )}
@@ -208,8 +214,13 @@ const Navbar = () => {
         </div>
 
         {/* Hamburger Menu */}
-        <div className="md:hidden" onClick={() => setOpen(!open)}>
-          {open ? <X size={30} /> : <Menu size={30} />}
+        <div className="md:hidden flex items-center justify-center gap-2">
+          <div className=" w-14 h-14 cursor-pointer hover:scale-95">
+            <img src={cartpng} alt="Cart_png" />
+          </div>
+          <div className="" onClick={() => setOpen(!open)}>
+            {open ? <X size={30} /> : <Menu size={30} />}
+          </div>
         </div>
       </div>
 
@@ -243,23 +254,25 @@ const Navbar = () => {
           {user ? (
             <div className="flex items-center gap-2 relative">
               <div
-                className="rounded-full w-12 h-12 border border-gray-300 cursor-pointer flex items-center justify-center bg-gray-900 text-white font-bold"
+                className="rounded-full w-12 h-12 border border-gray-300 cursor-pointer flex items-center justify-center bg-gray-900 text-white font-bold hover:scale-95"
                 onClick={() => setOpenProfile(!openProfile)}
               >
                 {user?.fullname.charAt(0).toUpperCase()}
               </div>
 
               {openProfile && (
-                <div className="  mt-2  shadow-lg rounded-lg p-2  text-sm ">
-                  <div >
-                    <p className="text-black font-bold px-2 py-1">{user.fullname}</p>
-                    <p className="px-2 py-1">{user.email}</p>
+                <div className="  mt-2 bg-black text-white shadow-lg rounded-lg p-2  text-sm ">
+                  <div className="">
+                    <p className="font-bold px-2 py-1 whitespace-nowrap">
+                      {user.fullname}
+                    </p>
+                    <p className="px-2 py-1 whitespace-nowrap">{user.email}</p>
                   </div>
                   <button
                     onClick={handleLogout}
                     className="w-full text-left px-2 py-1 hover:bg-red-600 rounded hover:text-white font-medium"
                   >
-                  Logout
+                    Logout
                   </button>
                 </div>
               )}
@@ -268,17 +281,17 @@ const Navbar = () => {
             <>
               <div className="flex items-center justify-center gap-2">
                 <button
-                className="px-5 py-2 border border-black text-black rounded-full hover:scale-90 hover:text-white duration-300"
-                onClick={() => setOpenLogin(true)}
-              >
-                Login
-              </button>
-              <button
-                className="px-5 py-2 bg-black text-white rounded-full hover:scale-90 duration-300"
-                onClick={() => setOpenSignup(true)}
-              >
-                Sign Up
-              </button>
+                  className="px-5 py-2 border border-black text-black rounded-full hover:scale-90 hover:text-white duration-300"
+                  onClick={() => setOpenLogin(true)}
+                >
+                  Login
+                </button>
+                <button
+                  className="px-5 py-2 bg-black text-white rounded-full hover:scale-90 duration-300"
+                  onClick={() => setOpenSignup(true)}
+                >
+                  Sign Up
+                </button>
               </div>
             </>
           )}

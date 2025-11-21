@@ -7,7 +7,6 @@ import CartPage from './Components/Cart Page/CartPage'
 import Navbar from './Components/Navbar/Navbar'
 import Footer from './Components/Footer/Footer'
 import Toast from './Components/Toaster/Toast'
-// import ErrorPage from './Components/ErrorPage/ErrorPage'
 
 const App = () => {
   return (
@@ -20,8 +19,6 @@ const App = () => {
         <Route path="/products" element={<ProductsPage/>} />
         <Route path="/contact" element={<ContactPage/>} />
         <Route path="/cart" element={<CartPage/>} />
-        {/* <Route path="*" element={<ErrorPage/>} /> */}
-
       </Routes>
       <Footer/>
     </Router>

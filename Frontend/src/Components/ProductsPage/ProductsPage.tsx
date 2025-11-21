@@ -9,7 +9,7 @@ import Stack from "@mui/material/Stack";
 const FETCH_PRODUCTS = "http://localhost:5000/api/fetch/all-products";
 
 interface Product {
-  id: string;
+  _id:string
   name: string;
   price: number;
   images: ProductImages;
@@ -95,6 +95,8 @@ const ProductPage = () => {
 
     loadProducts();
   }, []);
+   
+  
 
   // Category Filter
   const handleCategorySelect = (category: string) => {
@@ -137,7 +139,7 @@ const ProductPage = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
           {currentProducts.map((product) => (
             <div
-              key={product.id}
+              key={product._id}
               className="bg-white p-5 rounded-xl shadow-md hover:shadow-xl transition-all duration-300"
             >
               <figure className="w-full h-64 overflow-hidden rounded-lg">
