@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { Link, NavLink } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import logo from "../../assets/Logo.png";
@@ -7,6 +7,8 @@ import type { SubmitHandler } from "react-hook-form";
 import axios from "axios";
 import { toast } from "react-toastify";
 import cartpng from "../../assets/shopping-cart.gif";
+import  CartContext from "../../context/CartContext";
+
 
 const API_REGISTER = "http://localhost:5000/api/auth/user/registeruser";
 const API_LOGIN = "http://localhost:5000/api/login/loginuser";
@@ -33,10 +35,12 @@ const Navbar = () => {
   );
   const [openProfile, setOpenProfile] = useState(false);
 
+  const cartContext = useContext(CartContext);
+  const cart = cartContext?.cart || [];
+
   const delay = (ms: number) =>
     new Promise((resolve) => setTimeout(resolve, ms));
 
-  // Check logged-in user on mount
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -72,6 +76,7 @@ const Navbar = () => {
         withCredentials: true,
       });
       console.log("Login success:", response.data);
+      localStorage.setItem("token", response.data.user.token);
       setUser(response.data.user);
 
       toast.success(`Welcome, ${response.data.user.fullname}`);
@@ -119,6 +124,7 @@ const Navbar = () => {
   const handleLogout = async () => {
     try {
       await axios.post(API_LOGOUT, {}, { withCredentials: true });
+      localStorage.removeItem("token");
       setUser(null);
       setOpenProfile(false);
       setOpen(false);
@@ -128,6 +134,7 @@ const Navbar = () => {
     }
   };
 
+ 
   return (
     <nav className="w-full bg-white shadow-md fixed top-0 left-0 z-50">
       <div className="container mx-auto flex items-center justify-between px-4 py-3">
@@ -168,8 +175,14 @@ const Navbar = () => {
           {user ? (
             <div className="relative">
               <div className="flex items-center justify-center gap-2">
-                <div className=" w-14 h-14 cursor-pointer hover:scale-95">
-                  <img src={cartpng} alt="Cart_png" />
+                <div className=" w-14 h-14 cursor-pointer">
+                  <NavLink to="/cart">
+                    <span className="text-white font-bold absolute right-15 bg-red-400 w-5 h-5 rounded-full flex items-center justify-center">
+                      {cart.length}
+                    </span>
+
+                    <img src={cartpng} alt="Cart_png" />
+                  </NavLink>
                 </div>
                 <div
                   className="rounded-full w-12 h-12 border border-gray-300 cursor-pointer flex items-center justify-center bg-black text-white font-bold hover:scale-95"
@@ -215,8 +228,13 @@ const Navbar = () => {
 
         {/* Hamburger Menu */}
         <div className="md:hidden flex items-center justify-center gap-2">
-          <div className=" w-14 h-14 cursor-pointer hover:scale-95">
+          <div className=" w-14 h-14 cursor-pointer">
+            <NavLink to="/cart">
+              <span className="text-white absolute right-15 bg-red-400 w-5 h-5 rounded-full flex items-center justify-center">
+              {cart.length}
+            </span>
             <img src={cartpng} alt="Cart_png" />
+            </NavLink>
           </div>
           <div className="" onClick={() => setOpen(!open)}>
             {open ? <X size={30} /> : <Menu size={30} />}

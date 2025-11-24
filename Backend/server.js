@@ -4,7 +4,8 @@ const cors = require("cors");
 const dotenv = require("dotenv");
 const authRoutes = require("./Routes/authRoutes");
 const productRoutes = require("./Routes/productRoutes")
-
+const cartRoutes = require ("./Routes/cartRoutes");
+const authMiddleware = require ("./Middlewares/authMiddleware")
 
 
 const app = express();
@@ -43,6 +44,8 @@ app.use("/api/update", productRoutes);
 app.use("/api/single-product", productRoutes);
 app.use("/api/product-catagory", productRoutes);
 
+// Cart API
+app.use("/api/cart", authMiddleware, cartRoutes);
 
 
 // MongoDB connection

@@ -1,15 +1,18 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import type { ChangeEvent } from "react";
 import Category from "./Category/Category";
 import axios from "axios";
 import { toast } from "react-toastify";
 import Pagination from "@mui/material/Pagination";
 import Stack from "@mui/material/Stack";
+import CartContext from "../../context/CartContext";
+
+
 
 const FETCH_PRODUCTS = "http://localhost:5000/api/fetch/all-products";
 
 interface Product {
-  _id:string
+  _id: string;
   name: string;
   price: number;
   images: ProductImages;
@@ -41,6 +44,12 @@ interface iSpecifications {
   material: string;
   width: string;
 }
+
+/**
+ * Minimal CartContext type used by this component.
+ * Adjust types/signatures to match your actual context implementation if needed.
+ */
+
 
 const StarRating: React.FC<{ rating: number; maxRating?: number }> = ({
   rating,
@@ -79,6 +88,13 @@ const ProductPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const productsPerPage = 8;
 
+  // Use CartContext and guard against undefined
+      const cartContext = useContext(CartContext);
+      if (!cartContext) {
+        throw new Error("CartContext must be used within a CartProvider");
+      }
+      const { addToCart, loadCart } = cartContext;
+
   // Fetch products
   useEffect(() => {
     const loadProducts = async () => {
@@ -95,8 +111,6 @@ const ProductPage = () => {
 
     loadProducts();
   }, []);
-   
-  
 
   // Category Filter
   const handleCategorySelect = (category: string) => {
@@ -183,7 +197,13 @@ const ProductPage = () => {
                 >
                   View
                 </button>
-                <button className="w-full py-2 bg-gray-900 text-white rounded-lg hover:scale-90 hover:bg-gray-700 transition">
+                <button
+                  className="w-full py-2 bg-gray-900 text-white rounded-lg hover:scale-90 hover:bg-gray-700 transition"
+                  onClick={async () => {
+                    await addToCart(product._id, 1); 
+                    await loadCart(); 
+                  }}
+                >
                   Add to Cart
                 </button>
               </div>
@@ -264,7 +284,14 @@ const ProductPage = () => {
                     {selectedProduct.availability}
                   </p>
 
-                  <button className="mt-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-700 transition">
+                  <button
+                    className="mt-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-700 transition"
+                    onClick={async () => {
+                      if (!selectedProduct) return;
+                      await addToCart(selectedProduct._id, 1);
+                      await loadCart();
+                    }}
+                  >
                     Add to Cart
                   </button>
                 </div>
