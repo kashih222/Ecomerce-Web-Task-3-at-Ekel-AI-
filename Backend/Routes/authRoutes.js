@@ -20,7 +20,7 @@ const sendToken = (res, user, message, statusCode = 200) => {
   // Set HTTP-only cookie
   res.cookie("token", token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production", // HTTPS only in prod
+    secure: process.env.NODE_ENV === "production", 
     sameSite: "strict",
     maxAge: 60 * 60 * 1000, // 1 hour
   });
@@ -31,6 +31,7 @@ const sendToken = (res, user, message, statusCode = 200) => {
       id: user._id,
       fullname: user.fullname,
       email: user.email,
+      role : user.role,
       token,
     },
   });
@@ -95,7 +96,12 @@ router.get("/me", async (req, res) => {
 
     res.status(200).json({
       message: "User fetched successfully",
-      user,
+      user:{
+        id : user._id,
+        fullname : user.fullname,
+        email : user.email,
+        role: user.role,
+      },
     });
   } catch (err) {
     res.status(401).json({ message: "Invalid or expired token" });
@@ -111,5 +117,55 @@ router.post("/logout", (req, res) => {
   });
   res.status(200).json({ message: "Logged out successfully" });
 });
+
+
+// Fetch all users
+router.get("/all-users", async (req, res) => {
+  try {
+    const users = await User.find().select("-password");
+    res.status(200).json({ message: "All users fetched successfully", users });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Update user role
+router.put("/update-role/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { role } = req.body;
+
+    if (!["customer", "admin"].includes(role)) {
+      return res.status(400).json({ message: "Invalid role" });
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      id,
+      { role },
+      { new: true, runValidators: true }
+    ).select("-password");
+
+    if (!updatedUser) return res.status(404).json({ message: "User not found" });
+
+    res.status(200).json({ message: "User role updated successfully", user: updatedUser });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Delete user
+router.delete("/delete-user/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deletedUser = await User.findByIdAndDelete(id);
+
+    if (!deletedUser) return res.status(404).json({ message: "User not found" });
+
+    res.status(200).json({ message: "User deleted successfully", user: deletedUser });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 
 module.exports = router;

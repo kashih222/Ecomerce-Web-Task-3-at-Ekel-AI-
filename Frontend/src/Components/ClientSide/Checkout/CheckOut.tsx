@@ -1,5 +1,6 @@
 import React, { useContext, useMemo, useState } from "react";
 import CartContext, { type CartContextType } from "../../../context/CartContext";
+import { toast } from "react-toastify";
 
 const CheckOut: React.FC = () => {
   const [loading, setLoading] = useState(false);
@@ -16,7 +17,7 @@ const CheckOut: React.FC = () => {
   const handleOrder = async () => {
     setLoading(true);
     setTimeout(() => {
-      alert("Order placed successfully!");
+      toast.success("Order placed successfully!");
       setLoading(false);
     }, 1000);
   };

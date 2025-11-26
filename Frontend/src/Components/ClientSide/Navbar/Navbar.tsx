@@ -1,5 +1,5 @@
 import { useState, useEffect, useContext } from "react";
-import { Link, NavLink } from "react-router-dom";
+import { Link,  NavLink } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import logo from "../../../assets/Logo.png";
 import { useForm } from "react-hook-form";
@@ -7,7 +7,8 @@ import type { SubmitHandler } from "react-hook-form";
 import axios from "axios";
 import { toast } from "react-toastify";
 import cartpng from "../../../assets/shopping-cart.gif";
-import  CartContext from "../../../context/CartContext";
+import CartContext from "../../../context/CartContext";
+import { useNavigate } from "react-router-dom";
 
 
 const API_REGISTER = "http://localhost:5000/api/auth/user/registeruser";
@@ -30,10 +31,10 @@ const Navbar = () => {
   const [open, setOpen] = useState(false);
   const [OpenLogin, setOpenLogin] = useState(false);
   const [openSignup, setOpenSignup] = useState(false);
-  const [user, setUser] = useState<{ fullname: string; email: string } | null>(
-    null
-  );
+  const [user, setUser] = useState<{ fullname: string; email: string } | null>(null);
   const [openProfile, setOpenProfile] = useState(false);
+  const navigate = useNavigate();
+
 
   const cartContext = useContext(CartContext);
   const cart = cartContext?.cart || [];
@@ -76,12 +77,23 @@ const Navbar = () => {
         withCredentials: true,
       });
       console.log("Login success:", response.data);
-      localStorage.setItem("token", response.data.user.token);
+
+      // Store user data
       setUser(response.data.user);
+      localStorage.setItem("token", response.data.user.token);
 
       toast.success(`Welcome, ${response.data.user.fullname}`);
       resetLogin();
       setOpenLogin(false);
+
+      // Role-based redirection
+      if (response.data.user.role === "admin") {
+        navigate("/dashboard");
+      } else if (response.data.user.role === "customer") {
+        navigate("/");
+      } else {
+        navigate("/");
+      }
     } catch (error) {
       if (axios.isAxiosError(error)) {
         toast.error(
@@ -134,7 +146,6 @@ const Navbar = () => {
     }
   };
 
- 
   return (
     <nav className="w-full bg-white shadow-md fixed top-0 left-0 z-50">
       <div className="container mx-auto flex items-center justify-between px-4 py-3">
@@ -231,9 +242,9 @@ const Navbar = () => {
           <div className=" w-14 h-14 cursor-pointer">
             <NavLink to="/cart">
               <span className="text-white absolute right-15 bg-red-400 w-5 h-5 rounded-full flex items-center justify-center">
-              {cart.length}
-            </span>
-            <img src={cartpng} alt="Cart_png" />
+                {cart.length}
+              </span>
+              <img src={cartpng} alt="Cart_png" />
             </NavLink>
           </div>
           <div className="" onClick={() => setOpen(!open)}>

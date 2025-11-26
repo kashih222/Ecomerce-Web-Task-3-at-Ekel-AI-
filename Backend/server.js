@@ -35,6 +35,9 @@ app.use("/api/auth/user", authRoutes);
 app.use("/api/login", authRoutes);
 app.use("/api/loged-me", authRoutes);
 app.use("/api/auth/loging", authRoutes);
+app.use("/api/auth/fetch-all", authRoutes);
+app.use("/api/auth/update", authRoutes);
+app.use("/api/auth/delete", authRoutes);
 
 // Product API
 app.use("/api/product", productRoutes);

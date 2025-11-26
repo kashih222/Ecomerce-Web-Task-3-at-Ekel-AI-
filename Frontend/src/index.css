@@ -10,6 +10,12 @@
   --swiper-theme-color: #007aff;
 }
 
+
+.input {
+  @apply w-full p-3 border rounded focus:ring focus:outline-none;
+}
+
+
 body {
   margin: 0;
   padding: 0;

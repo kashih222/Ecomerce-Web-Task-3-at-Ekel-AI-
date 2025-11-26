@@ -1,9 +1,33 @@
-import { LayoutDashboard, Users, Package, Settings, LogOut, PlusCircle } from "lucide-react";
+import axios from "axios";
+import {
+  LayoutDashboard,
+  Users,
+  Package,
+  Settings,
+  LogOut,
+  PlusCircle,
+} from "lucide-react";
 import { NavLink } from "react-router-dom";
+import { toast } from "react-toastify";
 interface SidebarProps {
   sidebarOpen: boolean;
 }
-const AdminSidebar:React.FC<SidebarProps> = ({ sidebarOpen }) => {
+import { useNavigate } from "react-router-dom";
+
+
+const AdminSidebar: React.FC<SidebarProps> = ({ sidebarOpen }) => {
+  const Navigate = useNavigate();
+
+     const handleLogout = async () => {
+    try {
+      await axios.post("http://localhost:5000/api/auth/loging/logout", {}, { withCredentials: true });
+      toast.success("Logged out successfully!");
+      Navigate("/");
+    } catch (error) {
+      console.error(error);
+      toast.error("Logout failed");
+    }
+  };
   return (
     <aside
       className={`${
@@ -11,42 +35,41 @@ const AdminSidebar:React.FC<SidebarProps> = ({ sidebarOpen }) => {
       } bg-black text-white h-screen transition-all duration-300 sticky left-0 top-0`}
     >
       <div className="ml-2 px-5 py-6 font-bold text-xl transition-all duration-300">
-  {sidebarOpen ? "Admin" : "A"}
-</div>
-
+        {sidebarOpen ? "Admin" : "A"}
+      </div>
 
       <nav className="mt-4">
         <NavLink
-          to="/"
+          to="/dashboard"
           className="flex items-center gap-3 px-6 py-3 hover:bg-gray-700 transition"
         >
           <LayoutDashboard size={20} />
           {sidebarOpen && <span>Dashboard</span>}
         </NavLink>
 
-        <a
-          href="#"
+        <NavLink
+          to="/dashboard/users"
           className="flex items-center gap-3 px-6 py-3 hover:bg-gray-700 transition"
         >
           <Users size={20} />
           {sidebarOpen && <span>Users</span>}
-        </a>
+        </NavLink>
 
         <NavLink
-          to="/add-product"
+          to="/dashboard/add-product"
           className="flex items-center gap-3 px-6 py-3 hover:bg-gray-700 transition"
         >
           <PlusCircle size={20} />
           {sidebarOpen && <span>Add Product</span>}
         </NavLink>
 
-        <a
-          href="#"
+        <NavLink
+          to="/dashboard/products"
           className="flex items-center gap-3 px-6 py-3 hover:bg-gray-700 transition"
         >
           <Package size={20} />
           {sidebarOpen && <span>Products</span>}
-        </a>
+        </NavLink>
 
         <a
           href="#"
@@ -58,13 +81,14 @@ const AdminSidebar:React.FC<SidebarProps> = ({ sidebarOpen }) => {
 
         <div className="border-t border-gray-700 mt-4"></div>
 
-        <a
-          href="#"
+        <NavLink
+          to="/"
+          onClick={handleLogout}
           className="flex items-center gap-3 px-6 py-3 text-red-400 hover:bg-gray-700 transition"
         >
           <LogOut size={20} />
           {sidebarOpen && <span>Logout</span>}
-        </a>
+        </NavLink>
       </nav>
     </aside>
   );

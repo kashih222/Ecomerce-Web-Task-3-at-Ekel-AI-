@@ -1,18 +1,18 @@
-import { useForm, type SubmitHandler, Controller } from "react-hook-form";
+import { useState, type ChangeEvent, type FormEvent } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 
-type ProductFormInputs = {
+interface ProductForm {
   name: string;
   category: string;
-  price: number;
-  rating: number;
+  price: number | "";
+  rating: number | "";
   description: string;
   shortDescription: string;
   images: {
     thumbnail: string;
-    gallery: string[];
     detailImage: string;
+    gallery: string[];
   };
   specifications: {
     material: string;
@@ -22,197 +22,205 @@ type ProductFormInputs = {
     color: string;
   };
   availability: string;
-};
-
-const API_ADD_PRODUCT = "http://localhost:5000/api/products/add";
+}
 
 const AddProductPage = () => {
-  const { register, handleSubmit, control, reset } = useForm<ProductFormInputs>({
-    defaultValues: {
-      images: { gallery: [""] },
-      specifications: { material: "", height: "", width: "", weight: "", color: "" },
+  const [formData, setFormData] = useState<ProductForm>({
+    name: "",
+    category: "",
+    price: "",
+    rating: "",
+    description: "",
+    shortDescription: "",
+    images: {
+      thumbnail: "",
+      detailImage: "",
+      gallery: [""],
     },
+    specifications: {
+      material: "",
+      height: "",
+      width: "",
+      weight: "",
+      color: "",
+    },
+    availability: "In Stock",
   });
 
-  const onSubmit: SubmitHandler<ProductFormInputs> = async (data) => {
-    try {
-      const token = localStorage.getItem("token") || "";
+  // Handle basic input change
+  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
 
-      const response = await axios.post(API_ADD_PRODUCT, data, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+    // Numbers convert to number type
+    if (name === "price" || name === "rating") {
+      setFormData({ ...formData, [name]: value === "" ? "" : Number(value) });
+      return;
+    }
+
+    setFormData({ ...formData, [name]: value });
+  };
+
+  // Handle images
+  const handleImageChange = (
+    e: ChangeEvent<HTMLInputElement>,
+    index?: number
+  ) => {
+    const { name, value } = e.target;
+
+    if (name === "thumbnail" || name === "detailImage") {
+      setFormData({
+        ...formData,
+        images: { ...formData.images, [name]: value },
       });
+    } else if (name === "gallery" && index !== undefined) {
+      const updatedGallery = [...formData.images.gallery];
+      updatedGallery[index] = value;
+
+      setFormData({
+        ...formData,
+        images: { ...formData.images, gallery: updatedGallery },
+      });
+    }
+  };
+
+  // Add more gallery fields
+  const addGalleryField = () => {
+    setFormData({
+      ...formData,
+      images: {
+        ...formData.images,
+        gallery: [...formData.images.gallery, ""],
+      },
+    });
+  };
+
+  // Specifications
+  const handleSpecChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+
+    setFormData({
+      ...formData,
+      specifications: { ...formData.specifications, [name]: value },
+    });
+  };
+
+  // Submit Data
+  const submitProduct = async (e: FormEvent) => {
+    e.preventDefault();
+
+    try {
+      const res = await axios.post(
+  "http://localhost:5000/api/product/addproduct",
+  formData
+);
+
 
       toast.success("Product added successfully!");
-      reset();
-      console.log("Added product:", response.data);
-    } catch (err: unknown) {
-      console.error(err);
-      const errorMessage = axios.isAxiosError(err) 
-        ? err.response?.data?.message || "Failed to add product"
-        : "Failed to add product";
-      toast.error(errorMessage);
+      console.log(res.data);
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to add product");
     }
   };
 
   return (
-    <div className="w-full max-w-5xl  p-6 bg-white shadow-md rounded-md">
+    <div className="p-6 bg-white shadow rounded-lg">
       <h2 className="text-2xl font-bold mb-6">Add New Product</h2>
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
 
-        {/* Name & Category */}
-        <div className="flex flex-col md:flex-row gap-4">
-          <input
-            type="text"
-            placeholder="Product Name"
-            {...register("name", { required: true })}
-            className="flex-1 border border-gray-300 rounded p-2"
-          />
-          <input
-            type="text"
-            placeholder="Category"
-            {...register("category", { required: true })}
-            className="flex-1 border border-gray-300 rounded p-2"
-          />
-        </div>
+      <form onSubmit={submitProduct} className="space-y-4">
+        {/* BASIC INFO */}
+        <div className="grid grid-cols-2 gap-4">
+          <input name="name" placeholder="Product Name" className="input" onChange={handleChange} required />
+          <input name="category" placeholder="Category" className="input" onChange={handleChange} required />
 
-        {/* Price & Rating */}
-        <div className="flex flex-col md:flex-row gap-4">
           <input
+            name="price"
             type="number"
             placeholder="Price"
-            step="0.01"
-            {...register("price", { required: true, min: 0 })}
-            className="flex-1 border border-gray-300 rounded p-2"
+            className="input"
+            onChange={handleChange}
+            required
           />
+
           <input
+            name="rating"
             type="number"
             placeholder="Rating"
-            step="0.1"
-            min={0}
-            max={5}
-            {...register("rating", { required: true, min: 0, max: 5 })}
-            className="flex-1 border border-gray-300 rounded p-2"
+            className="input"
+            onChange={handleChange}
           />
         </div>
 
-        {/* Description */}
         <textarea
+          name="description"
           placeholder="Full Description"
-          {...register("description", { required: true })}
-          className="w-full border border-gray-300 rounded p-2"
+          className="input"
+          rows={3}
+          onChange={handleChange}
+          required
         />
+
         <textarea
+          name="shortDescription"
           placeholder="Short Description"
-          {...register("shortDescription")}
-          className="w-full border border-gray-300 rounded p-2"
+          className="input"
+          rows={2}
+          onChange={handleChange}
+          required
         />
 
-        {/* Images */}
-        <div className="space-y-2">
+        {/* IMAGES SECTION */}
+        <h3 className="font-semibold text-lg mt-4">Images</h3>
+
+        <input
+          name="thumbnail"
+          placeholder="Thumbnail URL"
+          className="input"
+          onChange={(e) => handleImageChange(e)}
+          required
+        />
+
+        <input
+          name="detailImage"
+          placeholder="Detail Image URL"
+          className="input"
+          onChange={(e) => handleImageChange(e)}
+        />
+
+        <h4 className="font-medium mt-2">Gallery</h4>
+
+        {formData.images.gallery.map((item, index) => (
           <input
-            type="text"
-            placeholder="Thumbnail URL"
-            {...register("images.thumbnail")}
-            className="w-full border border-gray-300 rounded p-2"
+            key={index}
+            name="gallery"
+            placeholder={`Gallery Image ${index + 1}`}
+            className="input"
+            value={item}
+            onChange={(e) => handleImageChange(e, index)}
           />
-          <input
-            type="text"
-            placeholder="Detail Image URL"
-            {...register("images.detailImage")}
-            className="w-full border border-gray-300 rounded p-2"
-          />
-          <Controller
-            control={control}
-            name="images.gallery"
-            render={({ field }) => (
-              <>
-                {field.value.map((url, index) => (
-                  <div key={index} className="flex flex-col sm:flex-row gap-2 mb-2">
-                    <input
-                      type="text"
-                      placeholder={`Gallery Image ${index + 1}`}
-                      value={url}
-                      onChange={(e) => {
-                        const newGallery = [...field.value];
-                        newGallery[index] = e.target.value;
-                        field.onChange(newGallery);
-                      }}
-                      className="flex-1 border border-gray-300 rounded p-2"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const newGallery = field.value.filter((_, i) => i !== index);
-                        field.onChange(newGallery);
-                      }}
-                      className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition"
-                    >
-                      Remove
-                    </button>
-                  </div>
-                ))}
-                <button
-                  type="button"
-                  onClick={() => field.onChange([...field.value, ""])}
-                  className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition"
-                >
-                  Add Gallery Image
-                </button>
-              </>
-            )}
-          />
+        ))}
+
+        <button type="button" className="px-3 py-2 bg-gray-300 rounded" onClick={addGalleryField}>
+          + Add More
+        </button>
+
+        {/* SPECIFICATIONS */}
+        <h3 className="font-semibold text-lg mt-4">Specifications</h3>
+
+        <div className="grid grid-cols-2 gap-4">
+          <input name="material" placeholder="Material" className="input" onChange={handleSpecChange} />
+          <input name="height" placeholder="Height" className="input" onChange={handleSpecChange} />
+          <input name="width" placeholder="Width" className="input" onChange={handleSpecChange} />
+          <input name="weight" placeholder="Weight" className="input" onChange={handleSpecChange} />
+          <input name="color" placeholder="Color" className="input" onChange={handleSpecChange} />
         </div>
 
-        {/* Specifications */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          <input
-            type="text"
-            placeholder="Material"
-            {...register("specifications.material")}
-            className="border border-gray-300 rounded p-2"
-          />
-          <input
-            type="text"
-            placeholder="Height"
-            {...register("specifications.height")}
-            className="border border-gray-300 rounded p-2"
-          />
-          <input
-            type="text"
-            placeholder="Width"
-            {...register("specifications.width")}
-            className="border border-gray-300 rounded p-2"
-          />
-          <input
-            type="text"
-            placeholder="Weight"
-            {...register("specifications.weight")}
-            className="border border-gray-300 rounded p-2"
-          />
-          <input
-            type="text"
-            placeholder="Color"
-            {...register("specifications.color")}
-            className="border border-gray-300 rounded p-2"
-          />
-        </div>
-
-        {/* Availability */}
-        <select
-          {...register("availability")}
-          className="border border-gray-300 rounded p-2 w-full"
-        >
+        <select name="availability" className="input" onChange={handleChange}>
           <option value="In Stock">In Stock</option>
           <option value="Out of Stock">Out of Stock</option>
         </select>
 
-        {/* Submit Button */}
-        <button
-          type="submit"
-          className="w-full md:w-auto bg-gray-900 text-white px-6 py-2 rounded hover:bg-gray-700 transition"
-        >
+        <button type="submit" className="px-6 py-2 bg-blue-600 text-white rounded">
           Add Product
         </button>
       </form>
