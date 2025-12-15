@@ -1,27 +1,29 @@
 const express = require("express");
 const Cart = require("../Model/Cart");
-const authMiddleware = require("../Middlewares/authMiddleware");
 const router = express.Router();
 
-// Helper to format cart items
-const formatCartItems = (cart) => {
-  return cart.cartItems
-    .filter((item) => item.productId) 
+//HELPER 
+const formatCartItems = (cart) =>
+  cart.cartItems
+    .filter((item) => item.productId)
     .map((item) => ({
       _id: item._id,
-      quantity: item.quantity,
       productId: item.productId._id,
-      name: item.productId.name || item.name, 
-      price: item.productId.price || item.price,
-      images: { thumbnail: item.productId.images?.thumbnail || item.images?.thumbnail || "/placeholder.png" },
+      name: item.productId.name,
+      price: item.productId.price,
+      quantity: item.quantity,
+      image: item.productId.images?.thumbnail || "/placeholder.png",
     }));
-};
 
-// Get Cart
-router.get("/get-cart", authMiddleware, async (req, res) => {
+// GET CART
+router.get("/get-cart", async (req, res) => {
   try {
-    const userId = req.user.id;
-    const cart = await Cart.findOne({ userId }).populate("cartItems.productId");
+    const { cartId } = req.query;
+    const userId = req.user?.id || null;
+
+    const cart = await Cart.findOne({
+      $or: [{ userId }, { cartId }],
+    }).populate("cartItems.productId");
 
     if (!cart) return res.json({ cartItems: [] });
 
@@ -32,17 +34,22 @@ router.get("/get-cart", authMiddleware, async (req, res) => {
   }
 });
 
-// Add to Cart
-router.post("/add-to-cart", authMiddleware, async (req, res) => {
+//ADD TO CART
+router.post("/add-to-cart", async (req, res) => {
   try {
-    const userId = req.user.id;
-    const { productId, quantity } = req.body;
+    const { productId, quantity, cartId } = req.body;
+    const userId = req.user?.id || null;
 
-    let cart = await Cart.findOne({ userId }).populate("cartItems.productId");
-    if (!cart) cart = new Cart({ userId, cartItems: [] });
+    let cart = await Cart.findOne({
+      $or: [{ userId }, { cartId }],
+    });
+
+    if (!cart) {
+      cart = new Cart({ userId, cartId, cartItems: [] });
+    }
 
     const itemIndex = cart.cartItems.findIndex(
-      (item) => item.productId && item.productId._id.toString() === productId
+      (item) => item.productId.toString() === productId
     );
 
     if (itemIndex > -1) {
@@ -52,52 +59,61 @@ router.post("/add-to-cart", authMiddleware, async (req, res) => {
     }
 
     await cart.save();
-    cart = await cart.populate("cartItems.productId");
+    await cart.populate("cartItems.productId");
 
-    res.json({ message: "Item added to cart", cartItems: formatCartItems(cart) });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error" });
-  }
-});
-
-// Update Quantity
-router.post("/update-qty", authMiddleware, async (req, res) => {
-  try {
-    const userId = req.user.id;
-    const { productId, quantity } = req.body;
-
-    const cart = await Cart.findOne({ userId }).populate("cartItems.productId");
-    if (!cart) return res.status(404).json({ message: "Cart not found" });
-
-    const item = cart.cartItems.find((i) => i.productId && i.productId._id.toString() === productId);
-    if (!item) return res.status(404).json({ message: "Product not in cart" });
-
-    item.quantity = quantity;
-    await cart.save();
-
-    res.json({ message: "Quantity updated", cartItems: formatCartItems(cart) });
+    res.json({
+      message: "Item added to cart",
+      cartItems: formatCartItems(cart),
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
   }
 });
 
-// Remove Item
-router.post("/remove-item", authMiddleware, async (req, res) => {
+//UPDATE QUANTITY 
+router.post("/update-qty", async (req, res) => {
   try {
-    const userId = req.user.id;
-    const { productId } = req.body;
+    const { productId, quantity, cartId } = req.body;
+    const userId = req.user?.id || null;
+
+    const cart = await Cart.findOne({
+      $or: [{ userId }, { cartId }],
+    }).populate("cartItems.productId");
+
+    if (!cart) return res.status(404).json({ message: "Cart not found" });
+
+    const item = cart.cartItems.find(
+      (i) => i.productId._id.toString() === productId
+    );
+
+    if (!item) return res.status(404).json({ message: "Item not found" });
+
+    item.quantity = quantity;
+    await cart.save();
+
+    res.json({ cartItems: formatCartItems(cart) });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// REMOVE ITEM 
+router.post("/remove-item", async (req, res) => {
+  try {
+    const { productId, cartId } = req.body;
+    const userId = req.user?.id || null;
 
     const cart = await Cart.findOneAndUpdate(
-      { userId },
+      { $or: [{ userId }, { cartId }] },
       { $pull: { cartItems: { productId } } },
       { new: true }
     ).populate("cartItems.productId");
 
     if (!cart) return res.json({ cartItems: [] });
 
-    res.json({ message: "Item removed", cartItems: formatCartItems(cart) });
+    res.json({ cartItems: formatCartItems(cart) });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });

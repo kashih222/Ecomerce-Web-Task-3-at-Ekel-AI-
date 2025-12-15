@@ -4,7 +4,7 @@ import { toast } from "react-toastify";
 import type {  RootState } from "../../types";
 
 
-// TYPES
+
 export type CartItem = {
   _id: string;
   productId: string;
@@ -20,10 +20,19 @@ type CartState = {
   error: string | null;
 };
 
-// AUTH TOKEN
+
 const getHeaders = () => {
   const token = localStorage.getItem("token");
   return token ? { Authorization: `Bearer ${token}` } : {};
+};
+
+const getCartId = () => {
+  let cartId = localStorage.getItem("guestCartId");
+  if (!cartId) {
+    cartId = Math.random().toString(36).substring(2) + Date.now().toString(36);
+    localStorage.setItem("guestCartId", cartId);
+  }
+  return cartId;
 };
 
 // FETCH CART
@@ -32,13 +41,13 @@ export const fetchCart = createAsyncThunk<CartItem[], void, { rejectValue: strin
   async (_, { rejectWithValue }) => {
     try {
       const res = await axios.get(
-        "http://localhost:5000/api/cart/get-cart",
+        `http://localhost:5000/api/cart/get-cart?cartId=${getCartId()}`,
         { headers: getHeaders() }
       );
       return res.data.cartItems || [];
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (err) {
-      toast.error("Could not load cart",);
+      // toast.error("Could not load cart",);
       return rejectWithValue("Could not load cart");
     }
   }
@@ -53,7 +62,7 @@ export const addToCart = createAsyncThunk<
   try {
     const res = await axios.post(
       "http://localhost:5000/api/cart/add-to-cart",
-      { productId, quantity },
+      { productId, quantity, cartId: getCartId() },
       { headers: getHeaders() }
     );
     toast.success("Added to cart");
@@ -79,7 +88,7 @@ export const updateQuantity = createAsyncThunk<
 
     const res = await axios.post(
       "http://localhost:5000/api/cart/update-qty",
-      { productId, quantity: newQty },
+      { productId, quantity: newQty, cartId: getCartId() },
       { headers: getHeaders() }
     );
 
@@ -99,7 +108,7 @@ export const removeItem = createAsyncThunk<
   try {
     const res = await axios.post(
       "http://localhost:5000/api/cart/remove-item",
-      { productId },
+      { productId, cartId: getCartId() },
       { headers: getHeaders() }
     );
     toast.success("Removed");

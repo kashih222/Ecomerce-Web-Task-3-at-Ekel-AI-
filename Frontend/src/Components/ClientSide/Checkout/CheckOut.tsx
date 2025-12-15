@@ -54,19 +54,13 @@ const CheckOut: React.FC = () => {
 
       const token = localStorage.getItem("token");
 
-      if (!token) {
-        toast.error("You must be logged in to place an order.");
-        setLoading(false);
-        return;
-      }
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
       await axios.post(
         "http://localhost:5000/api/order/place-order",
         orderData,
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers,
         }
       );
 

@@ -2,12 +2,13 @@
 const express = require("express");
 const Order = require("../Model/Order");
 const authMiddleware = require("../Middlewares/authMiddleware"); 
+const guestAuthMiddleware = require("../Middlewares/guestAuthMiddleware");
 const router = express.Router();
 const User = require("../Model/User");
 
 // Place an order
 
-router.post("/place-order", authMiddleware, async (req, res) => {
+router.post("/place-order", guestAuthMiddleware, async (req, res) => {
   try {
     const { items, shippingDetails, totalPrice,  } = req.body;
 
@@ -17,7 +18,7 @@ router.post("/place-order", authMiddleware, async (req, res) => {
     const calculatedTotal = totalPrice || items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
     const newOrder = new Order({
-      userId: req.user.id,
+      userId: req.user ? req.user.id : null,
       items,
       totalPrice: calculatedTotal,
       shippingDetails,

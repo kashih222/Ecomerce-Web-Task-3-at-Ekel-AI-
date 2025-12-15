@@ -77,6 +77,7 @@ const ProductPage = () => {
   const [openViewModal, setOpenViewModal] = useState<boolean>(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [selectedImage, setSelectedImage] = useState<string>("");
+  const [quantity, setQuantity] = useState<number>(1);
 
   //  Pagination States
   const [currentPage, setCurrentPage] = useState(1);
@@ -130,6 +131,7 @@ const ProductPage = () => {
   const handleViewClick = (product: Product) => {
     setSelectedProduct(product);
     setSelectedImage(product.images.detailImages);
+    setQuantity(1);
     setOpenViewModal(true);
   };
 
@@ -273,11 +275,28 @@ const ProductPage = () => {
                     {selectedProduct.availability}
                   </p>
 
+                  <div className="flex items-center gap-4 mt-4">
+                    <button
+                      className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300"
+                      onClick={() => setQuantity((prev) => Math.max(1, prev - 1))}
+                    >
+                      -
+                    </button>
+                    <span className="text-xl font-semibold">{quantity}</span>
+                    <button
+                      className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300"
+                      onClick={() => setQuantity((prev) => prev + 1)}
+                    >
+                      +
+                    </button>
+                  </div>
+                    
                   <button
                     className="mt-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-700 transition"
                     onClick={async () => {
                       if (!selectedProduct) return;
-                      await dispatch(addToCart({ productId: selectedProduct._id, quantity: 1 }));
+                      await dispatch(addToCart({ productId: selectedProduct._id, quantity }));
+                      setOpenViewModal(false);
                     }}
                   >
                     Add to Cart
