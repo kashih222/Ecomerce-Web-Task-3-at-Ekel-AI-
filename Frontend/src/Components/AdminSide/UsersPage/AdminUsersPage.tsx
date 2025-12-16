@@ -27,7 +27,7 @@ const AdminUsersPage = () => {
   const fetchUsers = async () => {
     try {
       const res = await axios.get(
-        "http://localhost:5000/api/auth/fetch-all/all-users"
+        `${import.meta.env.VITE_API_BASE}api/auth/fetch-all/all-users`
       );
       setUsers(res.data.users);
     } catch (error) {
@@ -52,7 +52,7 @@ const AdminUsersPage = () => {
     if (!selectedUserId) return;
     try {
       await axios.delete(
-        `http://localhost:5000/api/auth/delete/delete-user/${selectedUserId}`
+        `${import.meta.env.VITE_API_BASE}api/auth/delete/delete-user/${selectedUserId}`
       );
       toast.success("User deleted successfully!");
       fetchUsers();
@@ -77,7 +77,7 @@ const AdminUsersPage = () => {
     if (!selectedUser) return;
     try {
       await axios.put(
-        `http://localhost:5000/api/auth/update/update-role/${selectedUser._id}`,
+        `${import.meta.env.VITE_API_BASE}api/auth/update/update-role/${selectedUser._id}`,
         { role: newRole }
       );
       toast.success("User role updated successfully!");

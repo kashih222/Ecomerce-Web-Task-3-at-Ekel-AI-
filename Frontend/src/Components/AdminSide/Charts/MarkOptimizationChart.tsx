@@ -16,7 +16,7 @@ export default function OrdersPerDayChart() {
       try {
         const token = localStorage.getItem("token");
         const { data } = await axios.get<{ orders: Order[] }>(
-          "http://localhost:5000/api/order/all-orders",
+          `${import.meta.env.VITE_API_BASE}api/order/all-orders`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
 
