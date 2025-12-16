@@ -41,7 +41,7 @@ export const fetchCart = createAsyncThunk<CartItem[], void, { rejectValue: strin
   async (_, { rejectWithValue }) => {
     try {
       const res = await axios.get(
-        `http://localhost:5000/api/cart/get-cart?cartId=${getCartId()}`,
+        `${import.meta.env.VITE_API_BASE}api/cart/get-cart?cartId=${getCartId()}`,
         { headers: getHeaders() }
       );
       return res.data.cartItems || [];
@@ -61,7 +61,7 @@ export const addToCart = createAsyncThunk<
 >("cart/add", async ({ productId, quantity = 1 }, { rejectWithValue }) => {
   try {
     const res = await axios.post(
-      "http://localhost:5000/api/cart/add-to-cart",
+      `${import.meta.env.VITE_API_BASE}api/cart/add-to-cart`,
       { productId, quantity, cartId: getCartId() },
       { headers: getHeaders() }
     );
@@ -87,7 +87,7 @@ export const updateQuantity = createAsyncThunk<
     if (newQty < 1) return rejectWithValue("Invalid quantity");
 
     const res = await axios.post(
-      "http://localhost:5000/api/cart/update-qty",
+      `${import.meta.env.VITE_API_BASE}api/cart/update-qty`,
       { productId, quantity: newQty, cartId: getCartId() },
       { headers: getHeaders() }
     );
@@ -107,7 +107,7 @@ export const removeItem = createAsyncThunk<
 >("cart/remove", async ({ productId }, { rejectWithValue }) => {
   try {
     const res = await axios.post(
-      "http://localhost:5000/api/cart/remove-item",
+      `${import.meta.env.VITE_API_BASE}api/cart/remove-item`,
       { productId, cartId: getCartId() },
       { headers: getHeaders() }
     );

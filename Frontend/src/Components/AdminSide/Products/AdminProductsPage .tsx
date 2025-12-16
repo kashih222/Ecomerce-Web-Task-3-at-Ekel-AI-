@@ -46,7 +46,7 @@ const AdminProductsPage = () => {
   const fetchProducts = async () => {
     try {
       const res = await axios.get(
-        "http://localhost:5000/api/product/all-products"
+        `${import.meta.env.VITE_API_BASE}api/product/all-products`
       );
       setProducts(res.data.products);
     } catch (error) {
@@ -72,7 +72,7 @@ const AdminProductsPage = () => {
 
     try {
       await axios.delete(
-        `http://localhost:5000/api/product/del-product/${selectedProductId}`
+        `${import.meta.env.VITE_API_BASE}api/product/del-product/${selectedProductId}`
       );
       toast.success("Product deleted successfully!");
       fetchProducts();
@@ -121,7 +121,7 @@ const AdminProductsPage = () => {
 
     try {
       await axios.put(
-        `http://localhost:5000/api/update/update-product/${editProduct._id}`,
+        `${import.meta.env.VITE_API_BASE}api/update/update-product/${editProduct._id}`,
         editProduct
       );
 

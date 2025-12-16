@@ -41,8 +41,8 @@ const AdminOrders: React.FC = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [newStatus, setNewStatus] = useState("Pending");
 
-  const FETCH_ALL_ORDER = "http://localhost:5000/api/order/all-orders";
-  const UPDATE_STATUS = "http://localhost:5000/api/order/update-status/";
+  const FETCH_ALL_ORDER = `${import.meta.env.VITE_API_BASE}api/order/all-orders`;
+  const UPDATE_STATUS = `${import.meta.env.VITE_API_BASE}api/order/update-status/`;
 
  useEffect(() => {
   const fetchOrders = async () => {

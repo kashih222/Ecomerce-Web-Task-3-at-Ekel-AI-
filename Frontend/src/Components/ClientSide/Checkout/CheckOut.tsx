@@ -57,7 +57,7 @@ const CheckOut: React.FC = () => {
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
       await axios.post(
-        "http://localhost:5000/api/order/place-order",
+        `${import.meta.env.VITE_API_BASE}api/order/place-order`,
         orderData,
         {
           headers,

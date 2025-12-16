@@ -34,7 +34,7 @@ const ContactPage = () => {
 
     try {
       await axios.post(
-        "http://localhost:5000/api/contact/send-message",
+        `${import.meta.env.VITE_API_BASE}api/contact/send-message`,
         formData,
         { headers: { "Content-Type": "application/json" } }
       );

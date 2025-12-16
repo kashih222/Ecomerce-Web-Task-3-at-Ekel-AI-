@@ -1,27 +1,34 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 
-const PRODUCT_CATAGORY = "http://localhost:5000/api/product-catagory/categories";
+const PRODUCT_CATAGORY = `${
+  import.meta.env.VITE_API_BASE
+}api/product-catagory/categories`;
 
 interface CategoryProps {
   onCategorySelect: (category: string) => void;
 }
 
 const Category = ({ onCategorySelect }: CategoryProps) => {
-  
   const [categories, setCategories] = useState<string[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
 
-  // Fetch categories from backend
   const fetchCategories = async () => {
     try {
       const res = await axios.get(PRODUCT_CATAGORY);
+
       const data = res.data.categories;
 
-      setCategories(["All", ...data]);
+      if (Array.isArray(data)) {
+        setCategories(["All", ...data]);
+      } else {
+        console.error("Invalid categories data:", res.data);
+        setCategories(["All"]); 
+      }
     } catch (err) {
       console.error("Error fetching categories:", err);
+      setCategories(["All"]); 
     } finally {
       setLoading(false);
     }

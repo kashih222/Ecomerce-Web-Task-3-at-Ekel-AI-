@@ -21,7 +21,7 @@ const AdminHeader: React.FC<SidebarProps> = ({ toggleSidebar }) => {
   useEffect(() => {
   const fetchLoggedInUser = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/loged-me/me", { withCredentials: true });
+      const res = await axios.get(`${import.meta.env.VITE_API_BASE}api/loged-me/me`, { withCredentials: true });
       setUser(res.data.user);
     } catch (error) {
       console.error(error);
@@ -36,7 +36,7 @@ const AdminHeader: React.FC<SidebarProps> = ({ toggleSidebar }) => {
   // Logout handler
   const handleLogout = async () => {
     try {
-      await axios.post("http://localhost:5000/api/auth/loging/logout", {}, { withCredentials: true });
+      await axios.post(`${import.meta.env.VITE_API_BASE}api/auth/loging/logout`, {}, { withCredentials: true });
       toast.success("Logged out successfully!");
       localStorage.removeItem("token");
       navigate("/");

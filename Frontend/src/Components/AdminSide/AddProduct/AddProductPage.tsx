@@ -110,7 +110,7 @@ const AddProductPage = () => {
     };
 
     const res = await axios.post(
-      "http://localhost:5000/api/product/addproduct",
+      `${import.meta.env.VITE_API_BASE}api/product/addproduct`,
       payload
     );
 

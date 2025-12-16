@@ -8,7 +8,7 @@ import Stack from "@mui/material/Stack";
 import { addToCart, fetchCart } from "../../../Redux Toolkit/features/cart/cartSlice";
 import { useAppDispatch } from "../../../Redux Toolkit/hooks";
 
-const FETCH_PRODUCTS = "http://localhost:5000/api/fetch/all-products";
+const FETCH_PRODUCTS = `${import.meta.env.VITE_API_BASE}api/fetch/all-products`;
 
 interface Product {
   _id: string;

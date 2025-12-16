@@ -44,19 +44,19 @@ const DashboardHome: React.FC = () => {
       try {
         // Fetch total users
         const usersRes = await axios.get<{ users: User[] }>(
-          "http://localhost:5000/api/auth/fetch-all/all-users"
+          `${import.meta.env.VITE_API_BASE}api/auth/fetch-all/all-users`
         );
         setTotalUsers(usersRes.data.users.length);
 
         // Fetch total products
         const productsRes = await axios.get<{ products: Product[] }>(
-          "http://localhost:5000/api/product/all-products"
+          `${import.meta.env.VITE_API_BASE}api/product/all-products`
         );
         setTotalProducts(productsRes.data.products.length);
 
         // Fetch all orders
         const ordersRes = await axios.get<{ orders: Order[] }>(
-          "http://localhost:5000/api/order/all-orders"
+          `${import.meta.env.VITE_API_BASE}api/order/all-orders`
         );
 
         const orders = ordersRes.data.orders;

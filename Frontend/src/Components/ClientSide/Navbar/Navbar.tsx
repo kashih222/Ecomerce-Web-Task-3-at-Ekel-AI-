@@ -10,10 +10,10 @@ import cartpng from "../../../assets/shopping-cart.gif";
 import { useNavigate } from "react-router-dom";
 import { useAppSelector } from "../../../Redux Toolkit/hooks";
 
-const API_REGISTER = "http://localhost:5000/api/auth/user/registeruser";
-const API_LOGIN = "http://localhost:5000/api/login/loginuser";
-const API_LOGOUT = "http://localhost:5000/api/auth/loging/logout";
-const API_USER = "http://localhost:5000/api/loged-me/me";
+const API_REGISTER = `${import.meta.env.VITE_API_BASE}api/auth/user/registeruser`;
+const API_LOGIN = `${import.meta.env.VITE_API_BASE}api/login/loginuser`;
+const API_LOGOUT = `${import.meta.env.VITE_API_BASE}api/auth/loging/logout`;
+const API_USER = `${import.meta.env.VITE_API_BASE}api/loged-me/me`;
 
 type InputsLogin = {
   email: string;
