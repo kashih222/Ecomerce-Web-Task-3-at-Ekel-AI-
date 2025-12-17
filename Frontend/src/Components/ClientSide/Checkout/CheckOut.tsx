@@ -56,14 +56,11 @@ const CheckOut: React.FC = () => {
         totalPrice,
       };
 
-      const token = localStorage.getItem("token");
-
-      const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
 
       await axios.post(
         `${import.meta.env.VITE_API_BASE}api/order/place-order`,
         orderData,
-        { headers }
+        { withCredentials: true }
       );
 
       toast.success("Order placed successfully!");

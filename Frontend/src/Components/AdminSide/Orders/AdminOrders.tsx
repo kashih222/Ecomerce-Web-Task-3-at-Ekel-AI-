@@ -51,9 +51,8 @@ const AdminOrders: React.FC = () => {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const token = localStorage.getItem("token");
         const { data } = await axios.get<{ orders: Order[] }>(FETCH_ALL_ORDER, {
-          headers: { Authorization: `Bearer ${token}` },
+          withCredentials: true,
         });
 
         // Sort latest → oldest
@@ -84,16 +83,10 @@ const AdminOrders: React.FC = () => {
     if (!selectedOrder) return;
 
     try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        toast.error("You are not authorized");
-        return;
-      }
-
       await axios.put(
         `${UPDATE_STATUS}${selectedOrder._id}`,
         { status: statusToUpdate },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { withCredentials: true }
       );
 
       setOrders((prev) =>

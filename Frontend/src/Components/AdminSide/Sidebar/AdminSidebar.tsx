@@ -24,7 +24,6 @@ const AdminSidebar: React.FC<SidebarProps> = ({ sidebarOpen }) => {
     try {
       await axios.post(`${import.meta.env.VITE_API_BASE}api/auth/loging/logout`, {}, { withCredentials: true });
       toast.success("Logged out successfully!");
-      localStorage.removeItem("token");
       Navigate("/");
     } catch (error) {
       console.error(error);

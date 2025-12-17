@@ -14,10 +14,9 @@ export default function OrdersPerDayChart() {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const token = localStorage.getItem("token");
         const { data } = await axios.get<{ orders: Order[] }>(
           `${import.meta.env.VITE_API_BASE}api/order/all-orders`,
-          { headers: { Authorization: `Bearer ${token}` } }
+          { withCredentials: true }
         );
 
         // Initialize weekdays

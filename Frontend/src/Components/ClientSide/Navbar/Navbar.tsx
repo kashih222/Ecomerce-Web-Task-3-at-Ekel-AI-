@@ -79,7 +79,6 @@ const Navbar = () => {
 
       // Store user data
       setUser(response.data.user);
-      localStorage.setItem("token", response.data.user.token);
 
       toast.success(`Welcome, ${response.data.user.fullname}`);
       resetLogin();
@@ -135,7 +134,6 @@ const Navbar = () => {
   const handleLogout = async () => {
     try {
       await axios.post(API_LOGOUT, {}, { withCredentials: true });
-      localStorage.removeItem("token");
       setUser(null);
       setOpenProfile(false);
       setOpen(false);

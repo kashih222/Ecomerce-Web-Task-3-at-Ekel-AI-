@@ -18,11 +18,6 @@ type CartState = {
   error: string | null;
 };
 
-const getHeaders = () => {
-  const token = localStorage.getItem("token");
-  return token ? { Authorization: `Bearer ${token}` } : {};
-};
-
 const getCartId = () => {
   let cartId = localStorage.getItem("guestCartId");
   if (!cartId) {
@@ -41,7 +36,7 @@ export const fetchCart = createAsyncThunk<
   try {
     const res = await axios.get(
       `${import.meta.env.VITE_API_BASE}api/cart/get-cart?cartId=${getCartId()}`,
-      { headers: getHeaders() }
+      { withCredentials: true }
     );
     return res.data.cartItems || [];
   } catch (err) {
@@ -60,7 +55,7 @@ export const addToCart = createAsyncThunk<
     const res = await axios.post(
       `${import.meta.env.VITE_API_BASE}api/cart/add-to-cart`,
       { productId, quantity, cartId: getCartId() },
-      { headers: getHeaders() }
+      { withCredentials: true }
     );
     toast.success("Added to cart");
     return res.data.cartItems || [];
@@ -88,7 +83,7 @@ export const updateQuantity = createAsyncThunk<
       const res = await axios.post(
         `${import.meta.env.VITE_API_BASE}api/cart/update-qty`,
         { productId, quantity: newQty, cartId: getCartId() },
-        { headers: getHeaders() }
+        { withCredentials: true }
       );
 
       return res.data.cartItems || [];
@@ -109,7 +104,7 @@ export const removeItem = createAsyncThunk<
     const res = await axios.post(
       `${import.meta.env.VITE_API_BASE}api/cart/remove-item`,
       { productId, cartId: getCartId() },
-      { headers: getHeaders() }
+      { withCredentials: true }
     );
     toast.success("Removed");
     return res.data.cartItems || [];
