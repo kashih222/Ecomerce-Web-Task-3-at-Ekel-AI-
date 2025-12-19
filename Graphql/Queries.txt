@@ -1,0 +1,292 @@
+----------------------------------------------------------------------
+
+mutation Signup($userNew: UserInput!) {
+  signupUser(userNew: $userNew) {
+    _id
+    fullname
+    email
+    password
+    role
+  }
+}
+
+
+{
+  "userNew": {
+    "fullname": "Kashih",
+    "email": "kashih@gmail.com",
+    "password": "Kk4657276@"
+  }
+}
+
+------------------------------------------------------
+
+
+mutation Signin($userSignin: UserSigninInput!) {
+  signinUser(userSignin: $userSignin) {
+    token
+  }
+}
+
+
+{
+  "userSignin": {
+    "email": "kashih@gmail.com",
+    "password": "Kk4657276@"
+  }
+}
+
+
+---------------------------------------------
+
+mutation UpdateUserRole($userId: ID!, $role: String!) {
+  updateUserRole(userId: $userId, role: $role) {
+    _id
+    fullname
+    email
+    role
+  }
+}
+
+
+{
+  "userId": "694405261ad252ce46b26753",
+  "role": "admin"
+}
+
+
+----------------------------------------
+
+mutation DeleteUser($userId: ID!) {
+  deleteUser(userId: $userId)
+}
+
+
+{
+  "userId": "6944e02c2efb1598de483d1d"
+}
+
+-----------------------------------------
+
+
+query getAllusers{
+  users {
+    _id
+    fullname
+    email
+    password
+    role
+  }
+}
+
+
+-------------------------------------
+
+query GettAllProduct{
+  products {
+    _id
+    name
+    description
+    shortDescription
+    price
+    images {
+      detailImage
+      gallery
+      thumbnail
+    }
+    rating
+    availability
+    category
+  }
+}
+
+---------------------------------------
+
+mutation AddToCart($item: CartItemInput!, $userId: ID) {
+  addToCart(userId: $userId, item: $item) {
+    _id
+    cartItems {
+      name
+      quantity
+      
+    }
+  }
+}
+
+
+{
+  "userId": "6943fe54a84d20e3ad8d0cae",
+  "item": {
+    "productId": "6927e291cadcf1ab6aafdb1f",
+    "name": "Eco Bottle",
+    "price": 19.99,
+    "quantity": 1,
+    "thumbnail": "https://img.jpg"
+  }
+}
+
+
+------------------------------------------------
+
+query GetCart($userId: ID, $cartId: String) {
+  getCart(userId: $userId, cartId: $cartId) {
+    _id
+    userId
+    cartId
+    cartItems {
+      productId
+      name
+      price
+      quantity
+      images {
+        thumbnail
+      }
+    }
+  }
+}
+   
+
+
+{
+  "userId": "6943fe54a84d20e3ad8d0cae"
+}
+
+
+----------------------------------------------------------------------
+
+
+mutation RemoveCartItem(
+  $userId: ID
+  $cartId: String
+  $productId: ID!
+) {
+  removeCartItem(
+    userId: $userId
+    cartId: $cartId
+    productId: $productId
+  ) {
+    _id
+    cartItems {
+      name
+      quantity
+    }
+  }
+}
+
+
+{
+  "userId": "6943fe54a84d20e3ad8d0cae",
+  "productId": "6927e291cadcf1ab6aafdb1f"
+}
+
+
+-----------------------------------------------------
+
+mutation ClearCart($userId: ID, $cartId: String) {
+  clearCart(userId: $userId, cartId: $cartId)
+}
+
+
+{
+  "userId": "6943fe54a84d20e3ad8d0cae"
+}
+
+---------------------------------------------------------
+
+mutation CreateOrder($inputItems: [OrderItemInput!]!) {
+  createOrder(
+    userId: "69415ee8a6ec33799db1dae9"
+    items: $inputItems
+    totalPrice: 79.98
+    shippingDetails: {
+      fullName: "Kashih"
+      email: "kashih@gmail.com"
+      phone: "03001234567"
+      city: "Lahore"
+      address: "Johar Town"
+
+    }
+  ) {
+    _id
+    totalPrice
+    status
+    
+  }
+}
+
+
+{
+  "inputItems": [
+    {
+      "productId": "69440a171f8fe6fc5b33f507",
+      "name": "Eco Bottle",
+      "price": 19.99,
+      "quantity": 2
+    }
+  ]
+}
+
+
+
+-----------------------------------------------------
+
+
+mutation updateOrderStatus{
+  updateOrderStatus(
+    orderId: "6944eb6ec053b12bdbd81cf7"
+    status: "Shipped"
+  ) {
+    _id
+    status
+  }
+}
+
+
+--------------------------------------------------
+
+mutation SendContactMessage {
+  addContactMessage(
+    contactInput: {
+      fullName: "Kashih"
+      email: "kashih@gmail.com"
+      subject: "Order Inquiry"
+      message: "I want to know about my order delivery time."
+    }
+  ) {
+    _id
+    fullName
+    subject
+    createdAt
+  }
+}
+
+-------------------------------------------------
+
+
+query GetAllContactMessage {
+  getContactMessages {
+    _id
+    fullName
+    email
+    subject
+    message
+    createdAt
+  }
+}
+
+
+---------------------------------------------------------------------
+
+
+query GetSingleMessage {
+  getContactMessageById(messageId: "6944ed58908b98e21d53bcf0") {
+    fullName
+    email
+    subject
+    message
+  }
+}
+
+
+-----------------------------------------------------------------------
+
