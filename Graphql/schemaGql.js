@@ -7,6 +7,11 @@ const typeDefs = `
     role: String!
   }
 
+    type LogoutResponse {
+    success: Boolean!
+    message: String!
+  }
+
   type Product {
     id: ID!
     name: String!
@@ -69,9 +74,12 @@ const typeDefs = `
     weight: String
   }
 
-  type Token {
-    token: String
-  }
+  
+
+  type AuthPayload {
+  token: String!
+  role: String!
+}
 
   type CartItem {
   productId: ID!
@@ -166,7 +174,9 @@ input CartItemInput {
 
   type Query {
     users: [User]
+    loggedInUser: User
     products: [Product]
+    productCategories: [String!]!
     getCart(userId: ID, cartId: String): Cart
     getOrders: [Order]
     getUserOrders(userId: ID!): [Order]
@@ -177,7 +187,9 @@ input CartItemInput {
 
   type Mutation {
     signupUser(userNew: UserInput!): User
-    signinUser(userSignin: UserSigninInput!): Token
+    signinUser(userSignin: UserSigninInput!): AuthPayload!
+    logoutUser: LogoutResponse!
+
     addProduct(productNew: ProductInput!): Product
     updateUserRole(userId: ID!, role: String!): User
     deleteUser(userId: ID!): String

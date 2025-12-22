@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import { ChartBar, Users, ShoppingCart, DollarSign } from "lucide-react";
 import CategoryBarChart from "../Charts/CategoryBarChart";
 import MarkOptimizationChart from "../Charts/MarkOptimizationChart";
@@ -138,10 +137,10 @@ const DashboardHome: React.FC = () => {
 
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        <div className="bg-white p-5 rounded-lg shadow min-h-[300px] flex items-center justify-center">
+        <div className="bg-white p-5 rounded-lg shadow `min-h-[300px]` flex items-center justify-center">
           <CategoryBarChart />
         </div>
-        <div className="bg-white p-5 rounded-lg shadow min-h-[300px] flex items-center justify-center">
+        <div className="bg-white p-5 rounded-lg shadow `min-h-[300px]` flex items-center justify-center">
           <MarkOptimizationChart />
         </div>
       </div>

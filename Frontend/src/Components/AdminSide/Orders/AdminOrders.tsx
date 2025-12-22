@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import { toast } from "react-toastify";
 
 interface OrderItem {
@@ -172,7 +171,7 @@ const AdminOrders: React.FC = () => {
       {/* Modal */}
       {modalOpen && selectedOrder && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
-          <div className="bg-white rounded-xl p-6 w-[600px] shadow-xl overflow-y-auto max-h-[80vh]">
+          <div className="bg-white rounded-xl p-6 `w-[600px]` shadow-xl overflow-y-auto max-h-[80vh]">
             <h2 className="text-xl font-bold mb-4">Order Details</h2>
 
             <p>

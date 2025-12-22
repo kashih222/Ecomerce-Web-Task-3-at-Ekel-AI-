@@ -1,90 +1,76 @@
-import { useState, useEffect } from "react";
+import React from "react";
+import { useState } from "react";
 import type { ChangeEvent } from "react";
 import Category from "./Category/Category";
-import axios from "axios";
 import { toast } from "react-toastify";
 import Pagination from "@mui/material/Pagination";
 import Stack from "@mui/material/Stack";
 import { addToCart, fetchCart } from "../../../Redux Toolkit/features/cart/cartSlice";
 import { useAppDispatch } from "../../../Redux Toolkit/hooks";
-
-const FETCH_PRODUCTS = `${import.meta.env.VITE_API_BASE}api/fetch/all-products`;
+import { useQuery } from "@apollo/client";
+import { GET_ALL_PRODUCTS } from "../../../GraphqlOprations/queries";
 
 interface Product {
-  _id: string;
+  id: string;
   name: string;
   price: number;
   images: ProductImages;
   category: string;
   description?: string;
   shortDescription: string;
-  reviews: iReview[];
   specifications: iSpecifications;
   availability: string;
+  rating: number;
 }
 
 interface ProductImages {
   thumbnail: string;
   gallery: string[];
-  detailImages: string;
-}
-
-interface iReview {
-  user: string;
-  comment: string;
+  detailImage: string;
 }
 
 interface iSpecifications {
   color: string;
-  height: string;
-  weight: string;
   material: string;
-  width: string;
+  weight: string;
+  capacity?: string;
 }
 
-
-
-
 const ProductPage = () => {
-  const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [openViewModal, setOpenViewModal] = useState<boolean>(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [selectedImage, setSelectedImage] = useState<string>("");
   const [quantity, setQuantity] = useState<number>(1);
-
-  //  Pagination States
   const [currentPage, setCurrentPage] = useState(1);
   const productsPerPage = 8;
 
   const dispatch = useAppDispatch();
 
-  // Fetch products
-  useEffect(() => {
-    const loadProducts = async () => {
-      try {
-        const { data } = await axios.get(FETCH_PRODUCTS);
+  // Fetch products using Apollo useQuery
+  const { data, loading, error } = useQuery(GET_ALL_PRODUCTS);
 
-        setAllProducts(data.products);
-        setFilteredProducts(data.products);
-      } catch (error) {
-        toast.error("Failed to load products from server");
-        console.error(error);
-      }
-    };
-
-    loadProducts();
+  // Set products once data is loaded
+  React.useEffect(() => {
+    if (data?.products) {
+      setFilteredProducts(data.products);
+    }
+    if (error) {
+      toast.error("Failed to load products");
+      console.error(error);
+    }
     dispatch(fetchCart());
-  }, [dispatch]);
+  }, [data, error, dispatch]);
 
   // Category Filter
   const handleCategorySelect = (category: string) => {
     setCurrentPage(1);
-
     if (category === "All") {
-      setFilteredProducts(allProducts);
+      setFilteredProducts(data?.products || []);
     } else {
-      setFilteredProducts(allProducts.filter((p) => p.category === category));
+      setFilteredProducts(
+        (data?.products || []).filter((p: Product) => p.category === category)
+      );
     }
   };
 
@@ -94,32 +80,30 @@ const ProductPage = () => {
   const currentProducts = filteredProducts.slice(startIndex, endIndex);
   const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
 
-  // Page Change Handler
   const handlePageChange = (event: ChangeEvent<unknown>, value: number) => {
     event.preventDefault();
     setCurrentPage(value);
     window.scrollTo(0, 0);
   };
 
-  // View Modal Handler
   const handleViewClick = (product: Product) => {
     setSelectedProduct(product);
-    setSelectedImage(product.images.detailImages);
+    setSelectedImage(product.images.detailImage);
     setQuantity(1);
     setOpenViewModal(true);
   };
 
+  if (loading) return <p className="text-center mt-20">Loading products...</p>;
+
   return (
-    <div className="w-full min-h-screen bg-gray-100 mt-20">
-      {/* Category Component */}
+    <div className="w-full min-h-screen bg-gray-100 mt-32">
       <Category onCategorySelect={handleCategorySelect} />
 
-      {/* Product List */}
       <div className="container mx-auto px-6 py-12">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
           {currentProducts.map((product) => (
             <div
-              key={product._id}
+              key={product.id}
               className="bg-white p-5 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 flex flex-col"
             >
               <figure className="w-full h-64 overflow-hidden rounded-lg">
@@ -164,8 +148,7 @@ const ProductPage = () => {
                 <button
                   className="w-full py-2 bg-gray-900 text-white rounded-lg hover:scale-90 hover:bg-gray-700 transition"
                   onClick={async () => {
-                    await dispatch(addToCart({ productId: product._id, quantity: 1 }));
-                    console.log("add to cart button clicked ");
+                    await dispatch(addToCart({ productId: product.id, quantity: 1 }));
                   }}
                 >
                   Add to Cart
@@ -175,7 +158,6 @@ const ProductPage = () => {
           ))}
         </div>
 
-        {/* Pagination UI */}
         {filteredProducts.length > 0 && (
           <div className="flex justify-center py-10">
             <Stack spacing={2}>
@@ -192,7 +174,7 @@ const ProductPage = () => {
 
         {/* View Modal */}
         {openViewModal && selectedProduct && (
-          <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 overflow-auto p-4 pt-[450px] md:pt-4 ">
+          <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 overflow-auto p-4 `pt-[450px]` md:pt-4">
             <div className="bg-white rounded-xl w-full max-w-4xl p-6 relative shadow-lg">
               <button
                 onClick={() => setOpenViewModal(false)}
@@ -202,27 +184,23 @@ const ProductPage = () => {
               </button>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Left */}
                 <div>
                   <figure className="mb-4">
                     <img
-                      src={selectedImage || selectedProduct.images.detailImages}
+                      src={selectedImage || selectedProduct.images.detailImage}
                       alt={selectedProduct.name}
                       className="w-full h-76 object-cover rounded-lg shadow-md"
                     />
                   </figure>
 
                   <div className="flex gap-2">
-                    {[
-                      selectedProduct.images.detailImages,
-                      ...selectedProduct.images.gallery,
-                    ]
-                      .filter((img): img is string => !!img)
-                      .map((img, index) => (
+                    {[selectedProduct.images.detailImage, ...selectedProduct.images.gallery]
+                      .filter(Boolean)
+                      .map((img, idx) => (
                         <img
-                          key={index}
+                          key={idx}
                           src={img}
-                          alt={`${selectedProduct.name}-${index}`}
+                          alt={`${selectedProduct.name}-${idx}`}
                           className="w-20 h-20 object-cover rounded-lg cursor-pointer border-2 border-gray-200 hover:border-gray-900"
                           onClick={() => setSelectedImage(img)}
                         />
@@ -230,14 +208,10 @@ const ProductPage = () => {
                   </div>
                 </div>
 
-                {/* Right */}
                 <div className="flex flex-col gap-4">
                   <h2 className="text-3xl font-bold">{selectedProduct.name}</h2>
                   <p className="text-gray-600">{selectedProduct.category}</p>
-                  <p className="text-xl font-semibold">
-                    ${selectedProduct.price}
-                  </p>
-
+                  <p className="text-xl font-semibold">${selectedProduct.price}</p>
                   <p
                     className={`font-medium ${
                       selectedProduct.availability.toLowerCase() === "in stock"
@@ -263,12 +237,12 @@ const ProductPage = () => {
                       +
                     </button>
                   </div>
-                    
+
                   <button
                     className="mt-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-700 transition"
                     onClick={async () => {
                       if (!selectedProduct) return;
-                      await dispatch(addToCart({ productId: selectedProduct._id, quantity }));
+                      await dispatch(addToCart({ productId: selectedProduct.id, quantity }));
                       setOpenViewModal(false);
                     }}
                   >

@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import { toast } from "react-toastify";
 
 interface ContactMessage {
@@ -129,7 +128,7 @@ const AdminContactMessages: React.FC = () => {
 
       {modalOpen && selectedMessage && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
-          <div className="bg-white rounded-xl p-6 w-[500px] shadow-xl">
+          <div className="bg-white rounded-xl p-6 `w-[500px]` shadow-xl">
             <h2 className="text-xl font-bold mb-4">Message Details</h2>
 
             <p><strong>Name:</strong> {selectedMessage.fullName}</p>
@@ -155,7 +154,7 @@ const AdminContactMessages: React.FC = () => {
 
       {deleteId && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white w-[380px] rounded-xl p-6 shadow-xl">
+          <div className="bg-white `w-[380px]` rounded-xl p-6 shadow-xl">
             <h3 className="text-xl font-bold mb-3">Delete Message?</h3>
             <p className="text-black mb-6">
               Are you sure you want to delete this message? This action cannot be undone.

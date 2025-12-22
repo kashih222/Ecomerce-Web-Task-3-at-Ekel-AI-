@@ -39,6 +39,21 @@ mutation Signin($userSignin: UserSigninInput!) {
 
 ---------------------------------------------
 
+query LoggedInUser {
+  loggedInUser {
+    _id
+    fullname
+    email
+    role
+  }
+}
+
+
+Headers
+Authorization  Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OTQ1MjM1Njk1ZjEyMzk1Yjc5ZDRmOTYiLCJpYXQiOjE3NjYzOTY5MzMsImV4cCI6MTc2NjQ4MzMzM30.IWbyFZtUL6sTDEe5vR7N7t5UQd1AMXGB1bc0uHEQ0mA
+
+---------------------------------------------
+
 mutation UpdateUserRole($userId: ID!, $role: String!) {
   updateUserRole(userId: $userId, role: $role) {
     _id

@@ -1,19 +1,21 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import logo from "../../../assets/Logo.png";
 import { useForm } from "react-hook-form";
 import type { SubmitHandler } from "react-hook-form";
-import axios from "axios";
 import { toast } from "react-toastify";
 import cartpng from "../../../assets/shopping-cart.gif";
 import { useNavigate } from "react-router-dom";
 import { useAppSelector } from "../../../Redux Toolkit/hooks";
 
-const API_REGISTER = `${import.meta.env.VITE_API_BASE}api/auth/user/registeruser`;
-const API_LOGIN = `${import.meta.env.VITE_API_BASE}api/login/loginuser`;
-const API_LOGOUT = `${import.meta.env.VITE_API_BASE}api/auth/loging/logout`;
-const API_USER = `${import.meta.env.VITE_API_BASE}api/loged-me/me`;
+import client from "../../../GraphqlOprations/apolloClient";
+import { useQuery, useMutation } from "@apollo/client";
+import { GET_LOGED_IN_USER_INFO } from "../../../GraphqlOprations/queries";
+import {
+  SIGN_UP_USER,
+  SIGN_IN_USER,
+} from "../../../GraphqlOprations/mutation";
 
 type InputsLogin = {
   email: string;
@@ -38,20 +40,16 @@ const Navbar = () => {
 
   const cart = useAppSelector((state) => state.cart.items);
 
-  const delay = (ms: number) =>
-    new Promise((resolve) => setTimeout(resolve, ms));
+  const { refetch } = useQuery(GET_LOGED_IN_USER_INFO, {
+    fetchPolicy: "network-only",
+    onCompleted: (data) => {
+      if (data?.loggedInUser) setUser(data.loggedInUser);
+    },
+    onError: () => setUser(null),
+  });
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const response = await axios.get(API_USER, { withCredentials: true });
-        setUser(response.data.user);
-      } catch {
-        setUser(null);
-      }
-    };
-    fetchUser();
-  }, []);
+  const [signupUser] = useMutation(SIGN_UP_USER);
+  const [signinUser] = useMutation(SIGN_IN_USER);
 
   // LOGIN FORM
   const {
@@ -69,78 +67,70 @@ const Navbar = () => {
     formState: { errors: signupErrors, isSubmitting: signupSubmitting },
   } = useForm<InputsSignup>();
 
+
   // LOGIN SUBMIT
   const onLoginSubmit: SubmitHandler<InputsLogin> = async (data) => {
     try {
-      const response = await axios.post(API_LOGIN, data, {
-        withCredentials: true,
+      const response = await signinUser({
+        variables: {
+          userSignin: { email: data.email, password: data.password },
+        },
       });
-      console.log("Login success:", response.data);
 
-      // Store user data
-      setUser(response.data.user);
+      const token = response.data.signinUser.token;
+      const role = response.data.signinUser.role;
 
-      toast.success(`Welcome, ${response.data.user.fullname}`);
+      // Store JWT in localStorage
+      localStorage.setItem("token", token);
+      localStorage.setItem("role", role);
+
+      if (role === "admin") {
+        navigate("/dashboard");
+      } else {
+        navigate("/");
+      }
+
+
+      const userResponse = await client.query({
+        query: GET_LOGED_IN_USER_INFO,
+        context: {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+        fetchPolicy: "no-cache",
+      });
+
+      setUser(userResponse.data.loggedInUser);
+
+      toast.success(`Welcome, ${userResponse.data.loggedInUser.fullname}`);
       resetLogin();
       setOpenLogin(false);
-
-      // Role-based redirection
-      if (response.data.user.role === "admin") {
-        navigate("/dashboard");
-      } else if (response.data.user.role === "customer") {
-        navigate("/");
-      } else {
-        navigate("/");
-      }
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        toast.error(
-          error.response?.data?.message ||
-            "Something went wrong. Please try again."
-        );
-      } else {
-        toast.error("Something went wrong. Please try again.");
-      }
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Login failed!";
+      toast.error(message);
     }
   };
 
   // SIGNUP SUBMIT
   const onSignupSubmit: SubmitHandler<InputsSignup> = async (data) => {
     try {
-      await delay(2000);
-
-      const response = await axios.post(API_REGISTER, data, {
-        withCredentials: true,
-      });
-      console.log("User Registered:", response.data);
-
-      setUser(response.data.user);
-      resetSignup();
+      await signupUser({ variables: { userNew: data } });
+      toast.success("User registered successfully!");
       setOpenSignup(false);
-      toast.success("User Registered Successfully!");
-    } catch (error: unknown) {
-      if (axios.isAxiosError(error)) {
-        console.log(error.response?.data || error.message);
-        toast.error(error.response?.data?.message || "Something went wrong!");
-      } else {
-        console.log(error);
-        const message = error instanceof Error ? error.message : String(error);
-        toast.error(message || "Something went wrong!");
-      }
+      resetSignup();
+      await refetch();
+    } catch (err: Error | unknown) {
+      const message = err instanceof Error ? err.message : "Signup failed!";
+      toast.error(message);
     }
   };
 
   // LOGOUT
-  const handleLogout = async () => {
-    try {
-      await axios.post(API_LOGOUT, {}, { withCredentials: true });
-      setUser(null);
-      setOpenProfile(false);
-      setOpen(false);
-      toast.success("Logged out successfully");
-    } catch (error) {
-      console.log(error);
-    }
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("role");
+    setUser(null);
+    setOpenProfile(false);
+    toast.success("Logged out successfully");
   };
 
   return (
@@ -150,7 +140,7 @@ const Navbar = () => {
           <img
             src={logo}
             alt="logo"
-            className="w-[100px] hover:scale-95 duration-400 sm:w-[150px]  md:w-190px lg:w-200px xl:w-[200px]"
+            className="`w-[90px]` hover:scale-95 duration-400 `sm:w-[100px]`  md:w-190px lg:w-120px `xl:w-[150px]`"
           />
         </NavLink>
 

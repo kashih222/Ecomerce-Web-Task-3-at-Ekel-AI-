@@ -1,42 +1,26 @@
-import { useEffect, useState } from "react";
-import axios from "axios";
-
-const PRODUCT_CATAGORY = `${
-  import.meta.env.VITE_API_BASE
-}api/product-catagory/categories`;
+import { useState, useEffect } from "react";
+import { useQuery } from "@apollo/client";
+import { GET_PRODUCTS_CATEGORY } from "../../../../GraphqlOprations/queries";
 
 interface CategoryProps {
   onCategorySelect: (category: string) => void;
 }
 
 const Category = ({ onCategorySelect }: CategoryProps) => {
-  const [categories, setCategories] = useState<string[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [categories, setCategories] = useState<string[]>(() => ["All"]);
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
 
-  const fetchCategories = async () => {
-    try {
-      const res = await axios.get(PRODUCT_CATAGORY);
-
-      const data = res.data.categories;
-
-      if (Array.isArray(data)) {
-        setCategories(["All", ...data]);
-      } else {
-        console.error("Invalid categories data:", res.data);
-        setCategories(["All"]); 
-      }
-    } catch (err) {
-      console.error("Error fetching categories:", err);
-      setCategories(["All"]); 
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Fetch categories using Apollo
+  const { data, loading, error } = useQuery(GET_PRODUCTS_CATEGORY);
 
   useEffect(() => {
-    fetchCategories();
-  }, []);
+    if (data?.productCategories) {
+      setTimeout(() => {
+        setCategories(["All", ...data.productCategories]);
+      }, 0);
+    }
+    if (error) console.error("GraphQL error fetching categories:", error);
+  }, [data, error]);
 
   if (loading) {
     return (
@@ -65,11 +49,11 @@ const Category = ({ onCategorySelect }: CategoryProps) => {
                   onCategorySelect(category);
                 }}
                 className={`px-4 py-2 rounded-full cursor-pointer transition
-                  ${
-                    selectedCategory === category
-                      ? "bg-black text-white scale-95"
-                      : "bg-gray-200 text-black hover:scale-90"
-                  }`}
+      ${
+        selectedCategory === category
+          ? "bg-black text-white scale-95"
+          : "bg-gray-200 text-black hover:scale-90"
+      }`}
               >
                 {category}
               </li>

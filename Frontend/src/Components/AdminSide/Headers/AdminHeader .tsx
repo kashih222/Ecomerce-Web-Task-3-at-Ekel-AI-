@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { Menu, Bell, User, LogOut, Settings } from "lucide-react";
-import axios from "axios";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 

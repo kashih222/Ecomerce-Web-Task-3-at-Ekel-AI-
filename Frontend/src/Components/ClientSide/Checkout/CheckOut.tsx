@@ -1,5 +1,4 @@
 import React, { useMemo, useState } from "react";
-import axios from "axios";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../../Redux Toolkit/hooks";

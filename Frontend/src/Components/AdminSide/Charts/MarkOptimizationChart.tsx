@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { LineChart } from "@mui/x-charts/LineChart";
-import axios from "axios";
 
 interface Order {
   _id: string;

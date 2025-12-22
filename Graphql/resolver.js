@@ -6,6 +6,7 @@ import { randomBytes } from "crypto";
 import Cart from "./models/Cart.js";
 import Order from "./models/Order.js";
 import ContactMessage from "./models/ContactMessage.js";
+import { AuthenticationError } from "apollo-server-errors";
 
 const resolvers = {
   Query: {
@@ -14,9 +15,35 @@ const resolvers = {
       return await User.find();
     },
 
+    // Get LogedIn user Info
+    loggedInUser: async (_parent, _args, context) => {
+      if (!context.user) throw new AuthenticationError("Not authenticated");
+
+      const user = await User.findById(context.user.userId); // use userId from token
+      if (!user) throw new AuthenticationError("User not found");
+
+      return {
+        _id: user._id,
+        fullname: user.fullname,
+        email: user.email,
+        role: user.role,
+      };
+    },
+
     // Get All Products
     products: async () => {
       return await Product.find();
+    },
+
+    productCategories: async () => {
+      try {
+        const products = await Product.find().select("category");
+        const categories = products.map((p) => p.category);
+        return Array.from(new Set(categories));
+      } catch (err) {
+        console.error("Error fetching categories:", err);
+        return [];
+      }
     },
 
     // Get Cart Items
@@ -83,21 +110,53 @@ const resolvers = {
       return newUser;
     },
 
-    //Sign-In USer
+    // Sign-In User
     signinUser: async (_, { userSignin }) => {
       const user = await User.findOne({ email: userSignin.email });
       if (!user) {
         throw new Error("Please SignUp First with This Email");
       }
+
       const doMatch = await bcrypt.compare(userSignin.password, user.password);
       if (!doMatch) {
         throw new Error("Invalid Email And Password");
       }
-      const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
-        expiresIn: "1d",
-      });
-      return { token };
+
+      const token = jwt.sign(
+        {
+          userId: user._id,
+          role: user.role,
+        },
+        process.env.JWT_SECRET,
+        { expiresIn: "1d" }
+      );
+
+      return {
+        token,
+        role: user.role,
+      };
     },
+
+    // Logout User
+    logoutUser: async (_parent, _args, context) => {
+      try {
+        // For JWT, logout is typically handled client-side by removing token
+        if (context.res?.clearCookie) {
+          context.res.clearCookie("token");
+        }
+
+        return {
+          success: true,
+          message: "Logged out successfully",
+        };
+      } catch (err) {
+        return {
+          success: false,
+          message: "Failed to logout",
+        };
+      }
+    },
+
     // Update User Role
     updateUserRole: async (_, { userId, role }) => {
       if (!["admin", "customer"].includes(role)) {
@@ -271,7 +330,6 @@ const resolvers = {
       }
       return "Contact message deleted successfully";
     },
-
   },
 };
 

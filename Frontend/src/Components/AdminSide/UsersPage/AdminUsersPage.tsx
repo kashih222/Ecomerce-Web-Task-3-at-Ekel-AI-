@@ -1,5 +1,4 @@
 import { useEffect, useState, Fragment } from "react";
-import axios from "axios";
 import { toast } from "react-toastify";
 import { Dialog, Transition } from "@headlessui/react";
 

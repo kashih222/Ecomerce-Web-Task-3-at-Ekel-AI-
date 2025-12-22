@@ -1,5 +1,4 @@
 import { useState, type ChangeEvent, type FormEvent } from "react";
-import axios from "axios";
 import { toast } from "react-toastify";
 
 interface ProductForm {

@@ -1,32 +1,61 @@
-import { ApolloServer } from '@apollo/server';
-import { startStandaloneServer } from '@apollo/server/standalone';
-import dotenv from 'dotenv';
-import mongoose from 'mongoose';
-import typeDefs from './schemaGql.js';
-import resolvers from './resolver.js';
+import express from "express";
+import { ApolloServer } from "apollo-server-express";
+import cors from "cors";
+import mongoose from "mongoose";
+import dotenv from "dotenv";
+import jwt from "jsonwebtoken";
 
-
+import typeDefs from "./schemaGql.js";
+import resolvers from "./resolver.js";
 
 dotenv.config();
 
+const app = express();
+
+// CORS
+app.use(cors({
+  origin: "http://localhost:5173",
+  credentials: true,
+}));
+
+app.use(express.json());
+
+// JWT middleware
+app.use((req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (authHeader?.startsWith("Bearer ")) {
+    const token = authHeader.split(" ")[1];
+    try {
+      req.user = jwt.verify(token, process.env.JWT_SECRET);
+    } catch {
+      req.user = null;
+    }
+  }
+  next();
+});
+
+// Apollo Server
 const server = new ApolloServer({
   typeDefs,
   resolvers,
+  context: ({ req, res }) => ({
+    user: req.user,
+    res,
+  }),
 });
 
-
-mongoose
-  .connect(process.env.MONGO_URI)
-  .then(() => console.log("MongoDB connected"))
-  .catch(err => {
-    console.error(" MongoDB error:", err.message);
-    process.exit(1);
-  });
-
-const PORT = process.env.PORT;
-
-const { url } = await startStandaloneServer(server, {
-  listen: { port: PORT },
+await server.start();
+server.applyMiddleware({
+  app,
+  path: "/",
+  cors: false,
 });
 
-console.log(`Server ready at ${url}`);
+// MongoDB
+await mongoose.connect(process.env.MONGO_URI);
+console.log("MongoDB connected");
+
+const PORT = process.env.PORT || 4100;
+app.listen(PORT, () => {
+  console.log(`🚀 Server ready at http://localhost:${PORT}${server.graphqlPath}`);
+});
