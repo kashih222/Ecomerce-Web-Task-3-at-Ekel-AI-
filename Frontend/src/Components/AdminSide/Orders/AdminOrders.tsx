@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { toast } from "react-toastify";
 import { useQuery, useMutation } from "@apollo/client";
 import { UPDATE_ORDER_STATUS } from "../../../GraphqlOprations/mutation";
@@ -57,19 +57,7 @@ const AdminOrders: React.FC = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [newStatus, setNewStatus] = useState("Pending");
 
-  // Handle query errors with useEffect instead of onError callback
-  useEffect(() => {
-    if (error) {
-      console.error("🚨 GraphQL Error Details:");
-      console.error("Full error:", error);
-      console.error("GraphQL Errors:", error.graphQLErrors);
-      console.error("Network Error:", error.networkError);
-      
-      // Check browser Network tab for actual error
-      console.log("📋 Check browser Network tab for the failed GraphQL request");
-      console.log("📋 Look for the POST request to /graphql and check Response tab");
-    }
-  }, [error]);
+ 
 
   const openOrder = (order: Order) => {
     setSelectedOrder(order);

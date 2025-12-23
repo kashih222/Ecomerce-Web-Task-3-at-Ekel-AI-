@@ -208,8 +208,7 @@ type Order {
     updateOrderStatus(orderId: ID!, status: String!): Order
     deleteOrder(orderId: ID!): String
     addContactMessage(contactInput: ContactMessageInput!): ContactMessage
-    deleteContactMessage(messageId: ID!): String
-  }
+    deleteContactMessage(messageId: ID!): String  }
 `;
 
 export default typeDefs;

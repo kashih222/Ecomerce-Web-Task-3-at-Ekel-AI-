@@ -119,13 +119,28 @@ export const GET_ORDERS = gql`
   }          
 `;
 
-export const GET_SINGLE_MESSAGE = gql`
-  query GetSingleMessage($messageId: ID!) {
-    getContactMessageById(messageId: $messageId) {
+export const GET_CONTACT_MESSAGES = gql`
+  query GetContactMessages {
+    getContactMessages {
+      _id
       fullName
       email
       subject
       message
+      createdAt
+    }
+  }
+`;
+
+export const GET_SINGLE_MESSAGE = gql`
+  query GetSingleMessage($messageId: ID!) {
+    getContactMessageById(messageId: $messageId) {
+      _id
+      fullName
+      email
+      subject
+      message
+      createdAt
     }
   }
 `;

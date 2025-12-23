@@ -212,6 +212,7 @@ export const DELETE_PRODUCT = gql`
   }
 `;
 
+// mutations/contact.ts
 export const DELETE_CONTACT_MESSAGE = gql`
   mutation DeleteContactMessage($messageId: ID!) {
     deleteContactMessage(messageId: $messageId)

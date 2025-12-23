@@ -52,22 +52,22 @@ const resolvers = {
       return cart;
     },
 
-   // Admin all orders
-getOrders: async (_, __, context) => {
-  try {
-    const orders = await Order.find()
-      .populate("userId", "fullname email")
-      .lean(); 
-    
-    return orders.map((order) => ({
-      ...order,
-      user: order.userId, 
-    }));
-  } catch (error) {
-    console.error("Error fetching orders:", error);
-    throw new Error("Failed to fetch orders");
-  }
-},
+    // Admin all orders
+    getOrders: async (_, __, context) => {
+      try {
+        const orders = await Order.find()
+          .populate("userId", "fullname email")
+          .lean();
+
+        return orders.map((order) => ({
+          ...order,
+          user: order.userId,
+        }));
+      } catch (error) {
+        console.error("Error fetching orders:", error);
+        throw new Error("Failed to fetch orders");
+      }
+    },
 
     // User own orders
     getUserOrders: async (_, { userId }) => {
@@ -75,20 +75,20 @@ getOrders: async (_, __, context) => {
     },
 
     // Single order
-   getOrderById: async (_, { orderId }) => {
-  const order = await Order.findById(orderId)
-    .populate("userId", "fullname email")
-    .lean();
-  
-  if (!order) {
-    throw new Error("Order not found");
-  }
-  
-  return {
-    ...order,
-    user: order.userId,
-  };
-},
+    getOrderById: async (_, { orderId }) => {
+      const order = await Order.findById(orderId)
+        .populate("userId", "fullname email")
+        .lean();
+
+      if (!order) {
+        throw new Error("Order not found");
+      }
+
+      return {
+        ...order,
+        user: order.userId,
+      };
+    },
 
     // Admin: fetch all messages
     getContactMessages: async () => {
