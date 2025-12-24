@@ -1,6 +1,9 @@
 import { useEffect, useState, Fragment } from "react";
 import { toast } from "react-toastify";
 import { Dialog, Transition } from "@headlessui/react";
+import { useQuery, useMutation } from "@apollo/client";
+import { UPDATE_USER_ROLE, DELETE_USER } from "../../../GraphqlOprations/mutation";
+import { GET_ALL_USERS } from "../../../GraphqlOprations/queries";
 
 interface User {
   _id: string;
@@ -10,78 +13,83 @@ interface User {
 }
 
 const AdminUsersPage = () => {
-  const [users, setUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data, loading, error, refetch } = useQuery(GET_ALL_USERS);
+  const [updateUserRole] = useMutation(UPDATE_USER_ROLE);
+  const [deleteUser] = useMutation(DELETE_USER);
 
+
+  const [users, setUsers] = useState<User[]>([]);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
-
   const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [newRole, setNewRole] = useState<string>("");
 
-  // Fetch all users
-  const fetchUsers = async () => {
-    try {
-      const res = await axios.get(
-        `${import.meta.env.VITE_API_BASE}api/auth/fetch-all/all-users`
-      );
-      setUsers(res.data.users);
-    } catch (error) {
-      console.error(error);
-      toast.error("Failed to fetch users");
-    } finally {
-      setLoading(false);
+  useEffect(() => {
+    if (data && data.users) {
+      setUsers(data.users);
     }
-  };
+  }, [data]);
 
   useEffect(() => {
-    fetchUsers();
-  }, []);
+    if (error) {
+      console.error(error);
+      toast.error("Failed to fetch users");
+    }
+  }, [error]);
 
   const confirmDeleteUser = (id: string) => {
     setSelectedUserId(id);
     setIsDeleteModalOpen(true);
   };
 
-  // Delete user
-  const deleteUser = async () => {
+  // Delete user using GraphQL mutation
+  const handleDeleteUser = async () => {
     if (!selectedUserId) return;
     try {
-      await axios.delete(
-        `${import.meta.env.VITE_API_BASE}api/auth/delete/delete-user/${selectedUserId}`
-      );
+      await deleteUser({
+        variables: { userId: selectedUserId },
+      });
       toast.success("User deleted successfully!");
-      fetchUsers();
-    } catch (error) {
+      refetch();
+    } catch (error: unknown) {
       console.error(error);
-      toast.error("Failed to delete user");
+      if (error instanceof Error) {
+        toast.error(error.message || "Failed to delete user");
+      } else {
+        toast.error("Failed to delete user");
+      }
     } finally {
       setIsDeleteModalOpen(false);
       setSelectedUserId(null);
     }
   };
 
-  // Open update role modal
   const openRoleModal = (user: User) => {
     setSelectedUser(user);
     setNewRole(user.role);
     setIsRoleModalOpen(true);
   };
 
-  // Update user role
-  const updateRole = async () => {
+  // Update user role using GraphQL mutation
+  const handleUpdateRole = async () => {
     if (!selectedUser) return;
     try {
-      await axios.put(
-        `${import.meta.env.VITE_API_BASE}api/auth/update/update-role/${selectedUser._id}`,
-        { role: newRole }
-      );
+      await updateUserRole({
+        variables: {
+          userId: selectedUser._id,
+          role: newRole,
+        },
+      });
       toast.success("User role updated successfully!");
-      fetchUsers();
-    } catch (error) {
+      refetch();
+    } catch (error: unknown) {
       console.error(error);
-      toast.error("Failed to update role");
+      if (error instanceof Error) {
+        toast.error(error.message || "Failed to update role");
+      } else {
+        toast.error("Failed to update role");
+      }
     } finally {
       setIsRoleModalOpen(false);
       setSelectedUser(null);
@@ -177,8 +185,7 @@ const AdminUsersPage = () => {
                   </Dialog.Title>
                   <div className="mt-2">
                     <p className="text-sm text-gray-500">
-                      Are you sure you want to delete this user? This action
-                      cannot be undone.
+                      Are you sure you want to delete this user?
                     </p>
                   </div>
 
@@ -193,7 +200,7 @@ const AdminUsersPage = () => {
                     <button
                       type="button"
                       className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-                      onClick={deleteUser}
+                      onClick={handleDeleteUser}
                     >
                       Delete
                     </button>
@@ -268,7 +275,7 @@ const AdminUsersPage = () => {
                     <button
                       type="button"
                       className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                      onClick={updateRole}
+                      onClick={handleUpdateRole}
                     >
                       Save
                     </button>

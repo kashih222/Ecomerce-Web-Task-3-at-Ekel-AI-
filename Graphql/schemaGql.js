@@ -127,7 +127,7 @@ input CartItemInput {
 type Order {
   _id: ID!
   userId: ID
-  user: User  # Add this line
+  user: User
   items: [OrderItem!]!
   totalPrice: Float!
   shippingDetails: ShippingDetails

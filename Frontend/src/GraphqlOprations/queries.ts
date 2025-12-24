@@ -106,7 +106,6 @@ export const GET_ORDERS = gql`
         quantity
       }
       totalPrice
-      status
       shippingDetails {
         fullName
         email
@@ -114,9 +113,11 @@ export const GET_ORDERS = gql`
         city
         address
       }
+      status
       createdAt
+      updatedAt
     }
-  }          
+  }
 `;
 
 export const GET_CONTACT_MESSAGES = gql`

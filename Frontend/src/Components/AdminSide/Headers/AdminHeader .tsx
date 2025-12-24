@@ -3,7 +3,8 @@ import { Menu, Bell, User, LogOut, Settings } from "lucide-react";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { LOGOUT_USER } from "../../../GraphqlOprations/mutation";
-import { useMutation } from "@apollo/client";
+import { GET_LOGED_IN_USER_INFO } from "../../../GraphqlOprations/queries";
+import { useMutation, useQuery } from "@apollo/client";
 
 interface SidebarProps {
   sidebarOpen: boolean;
@@ -11,12 +12,15 @@ interface SidebarProps {
 }
 
 interface LoggedUser {
+  _id: string;
   fullname: string;
   email: string;
+  role: string;
 }
 
 const AdminHeader: React.FC<SidebarProps> = ({ toggleSidebar }) => {
-  const [user] = useState<LoggedUser | null>(() => {
+  const [user, setUser] = useState<LoggedUser | null>(() => {
+    // Try to get user from localStorage first (for initial render)
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
       try {
@@ -30,6 +34,30 @@ const AdminHeader: React.FC<SidebarProps> = ({ toggleSidebar }) => {
   });
 
   const navigate = useNavigate();
+
+  // Use GraphQL query to fetch logged-in user info
+  const { loading } = useQuery(GET_LOGED_IN_USER_INFO, {
+    fetchPolicy: "cache-and-network",
+    onCompleted: (data) => {
+      if (data?.loggedInUser) {
+        setUser(data.loggedInUser);
+        // Update localStorage with fresh data
+        localStorage.setItem("user", JSON.stringify(data.loggedInUser));
+      }
+    },
+    onError: (error) => {
+      console.error("Error fetching user info:", error);
+      // If there's an error, fall back to localStorage data
+      const storedUser = localStorage.getItem("user");
+      if (storedUser) {
+        try {
+          setUser(JSON.parse(storedUser));
+        } catch (parseError) {
+          console.error("Error parsing stored user data:", parseError);
+        }
+      }
+    }
+  });
 
   // Use the GraphQL mutation for logout
   const [logoutUser, { loading: logoutLoading }] = useMutation(LOGOUT_USER, {
@@ -61,11 +89,32 @@ const AdminHeader: React.FC<SidebarProps> = ({ toggleSidebar }) => {
 
     try {
       await logoutUser();
-      //
     } catch (error) {
       console.error("Logout failed:", error);
     }
   };
+
+  // Handle loading and error states
+  if (loading && !user) {
+    return (
+      <header className="w-full bg-white shadow-sm border-b sticky top-0 z-50">
+        <div className="flex justify-between items-center px-2 py-3">
+          <div className="flex items-center">
+            <button
+              onClick={toggleSidebar}
+              className="p-2 rounded-lg hover:bg-gray-100 transition"
+              aria-label="Toggle sidebar"
+            >
+              <Menu size={22} />
+            </button>
+          </div>
+          <div className="flex items-center">
+            <span className="text-gray-500 text-sm">Loading user info...</span>
+          </div>
+        </div>
+      </header>
+    );
+  }
 
   return (
     <header className="w-full bg-white shadow-sm border-b sticky top-0 z-50">
@@ -106,7 +155,18 @@ const AdminHeader: React.FC<SidebarProps> = ({ toggleSidebar }) => {
               </span>
             </button>
 
+            {/* Dropdown Content */}
             <div className="absolute right-0 mt-2 w-48 bg-white shadow-md rounded-lg py-2 opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition border border-gray-100 z-50">
+              {user && (
+                <div className="px-4 py-2 border-b border-gray-100">
+                  <p className="font-medium truncate">{user.fullname}</p>
+                  <p className="text-sm text-gray-500 truncate">{user.email}</p>
+                  {user.role && (
+                    <p className="text-xs text-blue-600 mt-1">Role: {user.role}</p>
+                  )}
+                </div>
+              )}
+              
               <button 
                 className="w-full flex items-center gap-2 px-4 py-2 hover:bg-gray-50 text-left"
                 onClick={() => navigate("/dashboard/settings")}
@@ -114,6 +174,7 @@ const AdminHeader: React.FC<SidebarProps> = ({ toggleSidebar }) => {
                 <Settings size={18} /> 
                 <span>Settings</span>
               </button>
+              
               <button
                 onClick={handleLogout}
                 disabled={logoutLoading}

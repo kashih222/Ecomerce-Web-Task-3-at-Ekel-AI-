@@ -53,21 +53,33 @@ const resolvers = {
     },
 
     // Admin all orders
-    getOrders: async (_, __, context) => {
-      try {
-        const orders = await Order.find()
-          .populate("userId", "fullname email")
-          .lean();
+   getOrders: async (_, __, context) => {
+  try {
+    const orders = await Order.find()
+      .populate({
+        path: "userId",
+        select: "fullname email",
+        model: "User"
+      })
+      .lean();
 
-        return orders.map((order) => ({
-          ...order,
-          user: order.userId,
-        }));
-      } catch (error) {
-        console.error("Error fetching orders:", error);
-        throw new Error("Failed to fetch orders");
-      }
-    },
+    return orders.map((order) => ({
+      ...order,
+      // Map userId object to user field
+      user: order.userId ? {
+        _id: order.userId._id,
+        fullname: order.userId.fullname,
+        email: order.userId.email
+      } : null,
+      // Ensure createdAt is in ISO string format
+      createdAt: order.createdAt?.toISOString?.() || order.createdAt,
+      updatedAt: order.updatedAt?.toISOString?.() || order.updatedAt
+    }));
+  } catch (error) {
+    console.error("Error fetching orders:", error);
+    throw new Error("Failed to fetch orders");
+  }
+},
 
     // User own orders
     getUserOrders: async (_, { userId }) => {

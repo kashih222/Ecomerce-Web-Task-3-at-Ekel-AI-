@@ -1,14 +1,5 @@
-import {
-  LayoutDashboard,
-  Users,
-  Package,
-  Settings,
-  LogOut,
-  PlusCircle,
-  MessageSquareDot,
-  Truck,
-} from "lucide-react";
-import { NavLink } from "react-router-dom";
+import { LayoutDashboard, Users, Package, Settings, LogOut, PlusCircle, MessageSquareDot,Truck } from "lucide-react";
+import { Link, NavLink } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { useMutation } from "@apollo/client";
@@ -40,7 +31,7 @@ const AdminSidebar: React.FC<SidebarProps> = ({ sidebarOpen }) => {
   const handleLogout = async (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
 
-    if (logoutLoading) return; 
+    if (logoutLoading) return;
 
     try {
       await logoutUser();
@@ -57,9 +48,11 @@ const AdminSidebar: React.FC<SidebarProps> = ({ sidebarOpen }) => {
         sidebarOpen ? "w-64" : "w-22"
       } bg-black text-white h-screen transition-all duration-300 sticky left-0 top-0`}
     >
-      <div className="ml-2 px-5 py-6 font-bold text-xl transition-all duration-300">
-        {sidebarOpen ? "Admin" : "A"}
-      </div>
+      <Link to="/dashboard">
+        <div className="ml-2 px-5 py-6 font-bold text-xl transition-all duration-300">
+          {sidebarOpen ? "Admin" : "A"}
+        </div>
+      </Link>
 
       <nav className="mt-4">
         <NavLink

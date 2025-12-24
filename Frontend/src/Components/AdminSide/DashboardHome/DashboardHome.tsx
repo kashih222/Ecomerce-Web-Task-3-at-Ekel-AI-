@@ -12,8 +12,6 @@ interface User {
   role?: string;
 }
 
-
-
 interface OrderItem {
   productId: string;
   name: string;
@@ -29,45 +27,46 @@ interface Order {
     fullname: string;
     email: string;
   };
+  shippingDetails?: {
+    fullName?: string;
+    email?: string;
+    phone?: string;
+    city?: string;
+    address?: string;
+  };
   items: OrderItem[];
   totalPrice: number;
   status: string;
   createdAt: string;
+  updatedAt?: string;
 }
 
 const DashboardHome: React.FC = () => {
-  // Use GraphQL queries
+
   const { data: usersData, loading: usersLoading } = useQuery(GET_ALL_USERS);
   const { data: productsData, loading: productsLoading } = useQuery(GET_ALL_PRODUCTS);
   const { data: ordersData, loading: ordersLoading } = useQuery(GET_ORDERS);
 
   const loading = usersLoading || productsLoading || ordersLoading;
 
-  // Calculate derived values using useMemo to avoid cascading renders
   const dashboardStats = useMemo(() => {
     const users = usersData?.users || [];
     const products = productsData?.products || [];
     const orders = ordersData?.getOrders || [];
 
-    // Calculate total users
     const totalUsers = users.length;
-
-    // Calculate total products
     const totalProducts = products.length;
-
-    // Calculate total revenue
     const totalRevenue = orders.reduce(
       (sum: number, order: Order) => sum + Number(order?.totalPrice ?? 0),
       0
     );
 
-    // Get recent orders (last 7)
     const recentOrders = [...orders]
       .sort(
         (a, b) =>
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       )
-      .slice(0, 7);
+      .slice(0, 20);
 
     return {
       totalUsers,
@@ -83,32 +82,28 @@ const DashboardHome: React.FC = () => {
   // Get user count by role
   const getRoleCounts = useMemo(() => {
     const users = dashboardStats.users as (User & { role?: string })[];
-    const adminCount = users.filter(
-      (user) => user.role === "admin"
-    ).length;
-    
+    const adminCount = users.filter((user) => user.role === "admin").length;
+
     const customerCount = users.filter(
       (user) => user.role === "customer" || !user.role
     ).length;
-    
+
     return { admin: adminCount, customer: customerCount };
   }, [dashboardStats.users]);
 
   // Get order status counts
   const getOrderStatusCounts = useMemo(() => {
     const orders = dashboardStats.orders as Order[];
-    const pending = orders.filter(
-      (order) => order.status === "Pending"
-    ).length;
-    
+    const pending = orders.filter((order) => order.status === "Pending").length;
+
     const completed = orders.filter(
       (order) => order.status === "Completed"
     ).length;
-    
+
     const cancelled = orders.filter(
       (order) => order.status === "Cancelled"
     ).length;
-    
+
     return { pending, completed, cancelled };
   }, [dashboardStats.orders]);
 
@@ -127,7 +122,9 @@ const DashboardHome: React.FC = () => {
           </div>
           <div>
             <p className="text-gray-500 text-sm">Total Users</p>
-            <p className="text-xl font-bold text-gray-800">{dashboardStats.totalUsers}</p>
+            <p className="text-xl font-bold text-gray-800">
+              {dashboardStats.totalUsers}
+            </p>
             <div className="text-xs text-gray-500 mt-1">
               {getRoleCounts.admin} Admin, {getRoleCounts.customer} Customers
             </div>
@@ -140,7 +137,9 @@ const DashboardHome: React.FC = () => {
           </div>
           <div>
             <p className="text-gray-500 text-sm">Total Products</p>
-            <p className="text-xl font-bold text-gray-800">{dashboardStats.totalProducts}</p>
+            <p className="text-xl font-bold text-gray-800">
+              {dashboardStats.totalProducts}
+            </p>
           </div>
         </div>
 
@@ -210,36 +209,103 @@ const DashboardHome: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {dashboardStats.recentOrders.map((order: Order) => (
-                <tr key={order._id}>
-                  <td className="px-4 py-2">#{order._id.slice(-6)}</td>
-                  <td className="px-4 py-2">
-                    {order.user?.fullname || "Unknown Customer"}
-                    {order.user?.email && (
-                      <div className="text-xs text-gray-500">{order.user.email}</div>
-                    )}
-                  </td>
-                  <td className="px-4 py-2">
-                    {new Date(order.createdAt).toLocaleDateString()}
-                  </td>
-                  <td className="px-4 py-2">
-                    <span
-                      className={`px-2 py-1 rounded-full text-xs ${
-                        order.status === "Completed"
-                          ? "bg-green-100 text-green-800"
-                          : order.status === "Pending"
-                          ? "bg-yellow-100 text-yellow-800"
-                          : "bg-red-100 text-red-800"
-                      }`}
-                    >
-                      {order.status}
-                    </span>
-                  </td>
-                  <td className="px-4 py-2">
-                    ${Number(order.totalPrice ?? 0).toFixed(2)}
-                  </td>
-                </tr>
-              ))}
+              {dashboardStats.recentOrders.map((order: Order) => {
+                // Parse date safely with time
+                let formattedDateTime = "Invalid Date";
+                if (order.createdAt) {
+                  try {
+                    const date = new Date(order.createdAt);
+                    if (!isNaN(date.getTime())) {
+                      formattedDateTime =
+                        date.toLocaleDateString("en-US", {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                        }) +
+                        " at " +
+                        date.toLocaleTimeString("en-US", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          hour12: true,
+                        });
+                    }
+                  } catch (error) {
+                    console.error("Date parsing error:", error);
+                  }
+                }
+
+                // Get customer name with fallback
+                const customerName =
+                  order.user?.fullname ||
+                  order.shippingDetails?.fullName ||
+                  "Unknown Customer";
+                const customerEmail =
+                  order.user?.email || order.shippingDetails?.email || "";
+
+                return (
+                  <tr key={order._id}>
+                    <td className="px-4 py-2">#{order._id.slice(-6)}</td>
+                    <td className="px-4 py-2">
+                      {customerName}
+                      {customerEmail && (
+                        <div className="text-xs text-gray-500">
+                          {customerEmail}
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-4 py-2">
+                      <div>{formattedDateTime}</div>
+                      {order.createdAt && (
+                        <div className="text-xs text-gray-500">
+                          {(() => {
+                            try {
+                              const date = new Date(order.createdAt);
+                              if (isNaN(date.getTime())) return "";
+
+                              const now = new Date();
+                              const diffMs = now.getTime() - date.getTime();
+                              const diffHours = Math.floor(
+                                diffMs / (1000 * 60 * 60)
+                              );
+
+                              if (diffHours < 1) {
+                                const diffMinutes = Math.floor(
+                                  diffMs / (1000 * 60)
+                                );
+                                return `${diffMinutes} minutes ago`;
+                              } else if (diffHours < 24) {
+                                return `${diffHours} hours ago`;
+                              } else {
+                                const diffDays = Math.floor(diffHours / 24);
+                                return `${diffDays} days ago`;
+                              }
+                            } catch (error) {
+                              console.log(error);
+                              return "";
+                            }
+                          })()}
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-4 py-2">
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs ${
+                          order.status === "Completed"
+                            ? "bg-green-100 text-green-800"
+                            : order.status === "Pending"
+                            ? "bg-yellow-100 text-yellow-800"
+                            : "bg-red-100 text-red-800"
+                        }`}
+                      >
+                        {order.status || "Unknown"}
+                      </span>
+                    </td>
+                    <td className="px-4 py-2">
+                      ${Number(order.totalPrice ?? 0).toFixed(2)}
+                    </td>
+                  </tr>
+                );
+              })}
               {dashboardStats.recentOrders.length === 0 && (
                 <tr>
                   <td colSpan={5} className="text-center py-4 text-gray-500">
